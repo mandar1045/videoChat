@@ -70,6 +70,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/groups", groupRoutes);
 
+connectDB();
+
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
@@ -78,9 +80,10 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-if (process.env.NODE_ENV === "development") {
+if (process.env.NODE_ENV !== "production") {
   server.listen(PORT, () => {
     console.log("server is running on PORT:" + PORT);
-    connectDB();
   });
 }
+
+export default app;
