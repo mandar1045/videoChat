@@ -2,7 +2,7 @@
   "version": 2,
   "functions": {
     "backend/src/index.js": {
-      "runtime": "nodejs18.x"
+      "runtime": "@vercel/node"
     }
   },
   "routes": [
