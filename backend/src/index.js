@@ -46,7 +46,7 @@ passport.deserializeUser((user, done) => {
   done(null, user);
 });
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5001; // Added fallback port
 const __dirname = path.resolve();
 
 const app = express();
@@ -56,9 +56,13 @@ initSocket(server);
 
 app.use(express.json());
 app.use(cookieParser());
+
+// Updated CORS configuration for production
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
+    origin: process.env.NODE_ENV === "production" 
+      ? ["https://yochat-5u1z.onrender.com"] // Add your production URL
+      : ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
     credentials: true,
   })
 );
@@ -66,12 +70,25 @@ app.use(
 // Initialize Passport
 app.use(passport.initialize());
 
+// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/groups", groupRoutes);
 
+// Health check endpoint for debugging
+app.get("/api/health", (req, res) => {
+  res.json({ 
+    status: "OK", 
+    environment: process.env.NODE_ENV,
+    port: PORT,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Connect to database
 connectDB();
 
+// Serve static files in production
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
@@ -80,10 +97,10 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-if (process.env.NODE_ENV !== "production") {
-  server.listen(PORT, () => {
-    console.log("server is running on PORT:" + PORT);
-  });
-}
+// FIXED: Server should listen in ALL environments, not just development
+server.listen(PORT, "0.0.0.0", () => {
+  console.log("server is running on PORT:" + PORT);
+  console.log("Environment:", process.env.NODE_ENV);
+});
 
 export default app;
