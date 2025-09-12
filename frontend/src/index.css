@@ -1,0 +1,277 @@
+/* Import Inter font (modern, clean font) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root {
+  --primary: #60a5fa;
+  --primary-dark: #3b82f6;
+  --primary-light: #93c5fd;
+  --secondary: #a78bfa;
+  --accent: #f472b6;
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-lg: rgba(0, 0, 0, 0.4);
+  --success: #34d399;
+  --success-light: #1f2937;
+  --success-dark: #10b981;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --whatsapp-text: var(--text-primary);
+  --whatsapp-text-light: var(--text-secondary);
+}
+
+/* Dark theme colors */
+[data-theme="luxury"] {
+  --primary: #60a5fa;
+  --primary-dark: #3b82f6;
+  --primary-light: #93c5fd;
+  --secondary: #a78bfa;
+  --accent: #f472b6;
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-lg: rgba(0, 0, 0, 0.4);
+  --success: #34d399;
+  --success-light: #1f2937;
+  --success-dark: #10b981;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --whatsapp-text: var(--text-primary);
+  --whatsapp-text-light: var(--text-secondary);
+}
+
+/* Light theme colors */
+[data-theme="light"] {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-light: #60a5fa;
+  --secondary: #7c3aed;
+  --accent: #ec4899;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --border: #e2e8f0;
+  --shadow: rgba(0, 0, 0, 0.05);
+  --shadow-lg: rgba(0, 0, 0, 0.1);
+  --success: #10b981;
+  --success-light: #d1fae5;
+  --success-dark: #059669;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --whatsapp-text: var(--text-primary);
+  --whatsapp-text-light: var(--text-secondary);
+}
+
+/* Apply modern font globally */
+* {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Modern chat styling */
+@layer components {
+  .chat-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: var(--bg-secondary);
+    box-shadow: 0 4px 20px var(--shadow);
+    backdrop-filter: blur(10px);
+  }
+
+  .chat-sidebar {
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+  }
+
+  .chat-bg {
+    background: var(--bg-primary);
+  }
+
+  .message-bubble-sent {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: var(--bg-secondary);
+    border-radius: 20px;
+    border-bottom-right-radius: 6px;
+    padding: 12px 16px;
+    margin: 6px 0;
+    max-width: 75%;
+    word-wrap: break-word;
+    position: relative;
+    box-shadow: 0 4px 12px var(--shadow);
+    font-size: 15px;
+    line-height: 1.4;
+    transition: all 0.2s ease;
+  }
+
+  .message-bubble-sent:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px var(--shadow-lg);
+  }
+
+  .message-bubble-received {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-radius: 20px;
+    border-bottom-left-radius: 6px;
+    padding: 12px 16px;
+    margin: 6px 0;
+    max-width: 75%;
+    word-wrap: break-word;
+    position: relative;
+    box-shadow: 0 2px 8px var(--shadow);
+    border: 1px solid var(--border);
+    font-size: 15px;
+    line-height: 1.4;
+    transition: all 0.2s ease;
+  }
+
+  .message-bubble-received:hover {
+    box-shadow: 0 4px 16px var(--shadow-lg);
+  }
+
+  .chat-input {
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border);
+    border-radius: 25px;
+    padding: 12px 18px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+  }
+
+  .chat-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    outline: none;
+  }
+
+  .chat-btn {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: var(--bg-secondary);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+
+  .chat-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px var(--shadow-lg);
+  }
+
+  .chat-btn:active {
+    transform: scale(0.95);
+  }
+
+  .chat-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-light);
+    transition: all 0.3s ease;
+  }
+
+  .chat-avatar:hover {
+    transform: scale(1.05);
+    border-color: var(--primary);
+  }
+}
+
+/* Global styles and animations */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Pulse animation for online indicators */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Hover effects */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px var(--shadow-lg);
+}
+
+/* Modern scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border-radius: 10px;
+  border: 2px solid var(--bg-tertiary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary) 100%);
+  border: 1px solid var(--bg-tertiary);
+}

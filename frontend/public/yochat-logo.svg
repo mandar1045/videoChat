@@ -1,0 +1,18 @@
+<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer chat bubble shape -->
+  <path d="M18 2C9.16 2 2 8.51 2 16.5C2 20.64 3.79 24.37 6.68 26.93L4.5 32.5L10.5 30.32C12.37 31.21 14.63 31.5 16.5 31.5C25.34 31.5 32.5 25.34 32.5 16.5C32.5 7.66 25.34 2 18 2Z" fill="url(#gradient)" stroke="#4F46E5" stroke-width="2"/>
+  
+  <!-- Inner speech lines -->
+  <path d="M12 14H24M12 18H20M12 22H16" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Stylized "Y" overlay -->
+  <text x="18" y="20" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Y</text>
+  
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>
