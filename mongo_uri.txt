@@ -1,0 +1,1 @@
+mongodb+srv://mandarjoshi1045_db_user:WwUzx2xSFowFkaZq@ac-lj3xdeb-shard-00-01.synlvxu.mongodb.net/chat_db?retryWrites=true&w=majority&appName=Cluster0

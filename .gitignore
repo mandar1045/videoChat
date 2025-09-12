@@ -26,3 +26,4 @@ dist-ssr
 .envbackend/.env
 .env
 backend/.env
+.vercel
