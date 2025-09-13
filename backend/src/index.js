@@ -46,7 +46,7 @@ passport.deserializeUser((user, done) => {
   done(null, user);
 });
 
-const PORT = parseInt(process.env.PORT) || 0.0.0.0;
+const PORT = parseInt(process.env.PORT) || 5001;
 const __dirname = path.resolve();
 
 const app = express();
