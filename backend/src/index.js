@@ -26,7 +26,7 @@ passport.use(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: process.env.NODE_ENV === "development"
         ? "http://localhost:5001/api/auth/google/callback"
-        : "/api/auth/google/callback",
+        : "https://yochat-8uud.onrender.com/api/auth/google/callback",
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -58,7 +58,9 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
+    origin: process.env.NODE_ENV === "production"
+      ? ["https://yochat-8uud.onrender.com"]
+      : ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
     credentials: true,
   })
 );
