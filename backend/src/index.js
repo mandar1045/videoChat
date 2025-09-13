@@ -7,6 +7,7 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 
 import path from "path";
+import { fileURLToPath } from "url";
 
 import { connectDB } from "./lib/db.js";
 import User from "./models/user.model.js";
@@ -47,7 +48,8 @@ passport.deserializeUser((user, done) => {
 });
 
 const PORT = parseInt(process.env.PORT) || 5001;
-const __dirname = path.resolve();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
