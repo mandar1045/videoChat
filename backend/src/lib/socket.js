@@ -25,6 +25,9 @@ export function initSocket(server) {
       }
       userSocketMap[userId].push(socket.id);
       console.log("📊 Updated userSocketMap for", userId, ":", userSocketMap[userId]);
+
+      // Update last seen
+      User.findByIdAndUpdate(userId, { lastSeen: new Date() }).catch(err => console.error("Error updating last seen:", err));
     } else {
       console.warn("⚠️ No userId in socket handshake query");
     }
@@ -145,12 +148,20 @@ export function initSocket(server) {
       });
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       console.log("A user disconnected", socket.id);
       if (userId && userSocketMap[userId]) {
         userSocketMap[userId] = userSocketMap[userId].filter(id => id !== socket.id);
         if (userSocketMap[userId].length === 0) {
           delete userSocketMap[userId];
+          // Update last seen when user goes completely offline
+          try {
+            const updatedUser = await User.findByIdAndUpdate(userId, { lastSeen: new Date() }, { new: true });
+            // Emit to all clients to update this user's last seen
+            io.emit("userLastSeenUpdate", { userId, lastSeen: updatedUser.lastSeen });
+          } catch (err) {
+            console.error("Error updating last seen on disconnect:", err);
+          }
         }
       }
       io.emit("getOnlineUsers", Object.keys(userSocketMap));

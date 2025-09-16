@@ -48,18 +48,18 @@ const MessageInput = () => {
   };
 
   return (
-    <div className="p-3 chat-bg border-t border-border">
+    <div className="p-4 bg-bg-secondary backdrop-blur-sm border-t border-border">
       {imagePreview && (
-        <div className="mb-2 flex items-center gap-2">
+        <div className="mb-4 flex items-center gap-3">
           <div className="relative">
             <img
               src={imagePreview}
               alt="Preview"
-              className="w-16 h-16 object-cover rounded-lg"
+              className="w-20 h-20 object-cover rounded-xl shadow-lg"
             />
             <button
               onClick={removeImage}
-              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-600 text-bg-primary flex items-center justify-center text-xs"
+              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow-lg"
               type="button"
             >
               ×
@@ -68,19 +68,19 @@ const MessageInput = () => {
         </div>
       )}
 
-      <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-        <div className="flex-1 flex items-center gap-2 chat-input">
+      <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+        <div className="flex-1 flex items-center gap-3 chat-input">
           <button
             type="button"
-            className="text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-text-secondary hover:text-text-primary transition-all duration-300 hover:scale-110 p-2"
           >
-            <Smile size={24} />
+            <Smile size={26} />
           </button>
 
           <input
             type="text"
-            className="flex-1 bg-transparent outline-none text-text-primary placeholder-text-muted"
-            placeholder="Type a message"
+            className="flex-1 bg-transparent outline-none text-text-primary placeholder-text-muted text-lg"
+            placeholder="Type a message..."
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
@@ -95,21 +95,21 @@ const MessageInput = () => {
 
           <button
             type="button"
-            className={`text-gray-500 hover:text-gray-700 transition-colors ${
+            className={`text-text-secondary hover:text-text-primary transition-all duration-300 hover:scale-110 p-2 ${
               imagePreview ? "text-success" : ""
             }`}
             onClick={() => fileInputRef.current?.click()}
           >
-            <Image size={24} />
+            <Image size={26} />
           </button>
         </div>
 
         <button
           type="submit"
-          className="chat-btn flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          className="chat-btn flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-xl"
           disabled={!text.trim() && !imagePreview}
         >
-          <Send size={20} />
+          <Send size={22} />
         </button>
       </form>
     </div>

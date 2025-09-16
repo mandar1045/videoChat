@@ -113,6 +113,29 @@ export const useChatStore = create((set, get) => ({
     });
   },
 
+  subscribeToUserUpdates: () => {
+    const socket = useAuthStore.getState().socket;
+
+    socket.on("userLastSeenUpdate", (data) => {
+      const { userId, lastSeen } = data;
+      const { selectedUser } = get();
+
+      set({
+        users: get().users.map(user =>
+          user._id === userId ? { ...user, lastSeen } : user
+        ),
+        selectedUser: selectedUser && selectedUser._id === userId
+          ? { ...selectedUser, lastSeen }
+          : selectedUser
+      });
+    });
+  },
+
+  unsubscribeFromUserUpdates: () => {
+    const socket = useAuthStore.getState().socket;
+    socket.off("userLastSeenUpdate");
+  },
+
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");

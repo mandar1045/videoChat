@@ -3,6 +3,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import { useCallStore } from "../store/useCallStore";
 import { useRef } from "react";
+import { formatLastSeen } from "../lib/utils";
 
 const ChatHeader = () => {
   const { selectedUser, setSelectedUser, selectedGroup, setSelectedGroup, deleteGroup, updateGroupProfilePic } = useChatStore();
@@ -56,30 +57,28 @@ const ChatHeader = () => {
   if (!chat) return null;
 
   return (
-    <div className="chat-header p-4 flex items-center justify-between">
-      <div className="flex items-center gap-3">
+    <div className="chat-header p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <div className="flex items-center gap-4">
         {/* Avatar */}
         <div className="relative">
           {selectedUser ? (
-            <img src={selectedUser.profilePic || "/avatar.png"} alt={selectedUser.fullName} className="chat-avatar" />
+            <img src={selectedUser.profilePic || "/avatar.png"} alt={selectedUser.fullName} className="w-12 h-12 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600" />
           ) : selectedGroup.profilePic ? (
-            <img src={selectedGroup.profilePic} alt={selectedGroup.name} className="chat-avatar" />
+            <img src={selectedGroup.profilePic} alt={selectedGroup.name} className="w-12 h-12 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600" />
           ) : (
-            <div className="chat-avatar bg-gray-400 flex items-center justify-center">
-              <span className="text-bg-primary font-bold text-lg">
-                {selectedGroup.name.charAt(0).toUpperCase()}
-              </span>
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-lg">
+              {selectedGroup.name.charAt(0).toUpperCase()}
             </div>
           )}
           {/* Online indicator for users */}
           {selectedUser && onlineUsers.includes(selectedUser._id) && (
-            <span className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-bg-primary"></span>
+            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
           )}
           {/* Camera button for group profile pic update (only for creator) */}
           {selectedGroup && authUser && selectedGroup.creator === authUser._id && (
             <button
               onClick={handleCameraClick}
-              className="absolute bottom-0 right-0 bg-gray-600 text-bg-primary rounded-full p-1 hover:bg-gray-700 transition-colors"
+              className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-1 hover:bg-blue-600 transition-colors"
             >
               <Camera size={12} />
             </button>
@@ -88,12 +87,12 @@ const ChatHeader = () => {
 
         {/* Chat info */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-lg truncate text-text-primary">
+          <h3 className="font-semibold text-lg truncate text-gray-900 dark:text-white">
             {selectedUser ? selectedUser.fullName : selectedGroup.name}
           </h3>
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             {selectedUser
-              ? (onlineUsers.includes(selectedUser._id) ? "online" : "last seen recently")
+              ? (onlineUsers.includes(selectedUser._id) ? "online" : formatLastSeen(selectedUser.lastSeen))
               : `${selectedGroup.members.length} members`
             }
           </p>
@@ -101,30 +100,30 @@ const ChatHeader = () => {
       </div>
 
       {/* Action buttons */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         {/* Call buttons for users */}
         {selectedUser && (
           <>
             <button
               onClick={handleAudioCall}
-              className="hover:bg-bg-tertiary rounded-full p-2 transition-colors text-text-primary"
+              className="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               title="Audio Call"
             >
-              <Phone size={22} />
+              <Phone size={20} />
             </button>
             <button
               onClick={handleVideoCall}
-              className="hover:bg-bg-tertiary rounded-full p-2 transition-colors text-text-primary"
+              className="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               title="Video Call"
             >
-              <Video size={22} />
+              <Video size={20} />
             </button>
           </>
         )}
 
         {/* Info button */}
-        <button className="hover:bg-bg-tertiary rounded-full p-2 transition-colors text-text-primary">
-          <Info size={22} />
+        <button className="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <Info size={20} />
         </button>
       </div>
 

@@ -30,6 +30,7 @@ export const signup = async (req, res) => {
 
     if (newUser) {
       // generate jwt token here
+      newUser.lastSeen = new Date();
       generateToken(newUser._id, res);
       await newUser.save();
 
@@ -61,6 +62,9 @@ export const login = async (req, res) => {
     if (!isPasswordCorrect) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
+
+    user.lastSeen = new Date();
+    await user.save();
 
     generateToken(user._id, res);
 
@@ -109,6 +113,23 @@ export const updateProfile = async (req, res) => {
   }
 };
 
+export const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Delete the user
+    await User.findByIdAndDelete(userId);
+
+    // Clear the cookie
+    res.cookie("jwt", "", { maxAge: 0 });
+
+    res.status(200).json({ message: "Account deleted successfully" });
+  } catch (error) {
+    console.log("Error in deleteAccount controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 export const checkAuth = (req, res) => {
   try {
     res.status(200).json(req.user);
@@ -147,6 +168,10 @@ export const googleAuthCallback = async (req, res) => {
         await user.save();
       }
     }
+
+    // Update last seen
+    user.lastSeen = new Date();
+    await user.save();
 
     // Generate JWT token
     generateToken(user._id, res);
@@ -225,6 +250,10 @@ export const googleSignIn = async (req, res) => {
     } else {
       console.log("Found existing Google user");
     }
+
+    // Update last seen
+    user.lastSeen = new Date();
+    await user.save();
 
     // Generate JWT token
     console.log("Generating token for user:", user._id);

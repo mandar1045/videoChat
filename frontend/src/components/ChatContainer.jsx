@@ -16,6 +16,8 @@ const ChatContainer = () => {
     selectedGroup,
     subscribeToMessages,
     unsubscribeFromMessages,
+    subscribeToUserUpdates,
+    unsubscribeFromUserUpdates,
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
@@ -29,6 +31,12 @@ const ChatContainer = () => {
 
     return () => unsubscribeFromMessages();
   }, [selectedUser?._id, selectedGroup?._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+
+  useEffect(() => {
+    subscribeToUserUpdates();
+
+    return () => unsubscribeFromUserUpdates();
+  }, [subscribeToUserUpdates, unsubscribeFromUserUpdates]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
@@ -50,7 +58,7 @@ const ChatContainer = () => {
     <div className="flex-1 flex flex-col overflow-auto">
       <ChatHeader />
 
-      <div className="flex-1 overflow-y-auto chat-bg p-4 space-y-2">
+      <div className="flex-1 overflow-y-auto chat-bg p-6 space-y-4">
         {messages.map((message, index) => {
           const isOwnMessage = authUser && message.senderId === authUser._id;
           const isLastMessage = index === messages.length - 1;
@@ -60,7 +68,7 @@ const ChatContainer = () => {
               className={`flex w-full ${isOwnMessage ? "justify-end" : "justify-start"}`}
               ref={isLastMessage ? messageEndRef : null}
             >
-              <div className={`flex items-end gap-2 max-w-[85%] ${isOwnMessage ? "flex-row-reverse" : "flex-row"} w-full`}>
+              <div className={`flex items-end gap-3 max-w-[80%] ${isOwnMessage ? "flex-row-reverse" : "flex-row"} w-full`}>
                 {!isOwnMessage && (
                   <img
                     src={
@@ -69,12 +77,12 @@ const ChatContainer = () => {
                         : message.senderId.profilePic || "/avatar.png"
                     }
                     alt="profile pic"
-                    className="chat-avatar flex-shrink-0"
+                    className="chat-avatar flex-shrink-0 shadow-lg"
                   />
                 )}
                 <div className={`flex flex-col ${isOwnMessage ? "items-end" : "items-start"} min-w-0`}>
                   {selectedGroup && !isOwnMessage && (
-                    <div className="text-xs text-gray-600 mb-1 px-2 font-medium">
+                    <div className="text-sm text-text-secondary mb-2 px-3 font-semibold drop-shadow-sm">
                       {message.senderId.fullName}
                     </div>
                   )}
@@ -83,14 +91,14 @@ const ChatContainer = () => {
                       <img
                         src={message.image}
                         alt="Attachment"
-                        className="max-w-[200px] rounded-lg mb-2"
+                        className="max-w-[250px] rounded-xl mb-3 shadow-lg"
                       />
                     )}
-                    {message.text && <p className="text-sm leading-relaxed m-0 break-words">{message.text}</p>}
+                    {message.text && <p className="text-base leading-relaxed m-0 break-words">{message.text}</p>}
                   </div>
-                  <div className={`text-xs mt-1 px-2 ${isOwnMessage ? "text-right" : "text-left"} text-gray-500`}>
+                  <div className={`text-xs mt-1 px-2 ${isOwnMessage ? "text-right" : "text-left"} text-text-muted`}>
                     {formatMessageTime(message.createdAt)}
-                    {isOwnMessage && <span className="ml-1 opacity-70">✓✓</span>}
+                    {isOwnMessage && <span className="ml-1 text-primary">✓✓</span>}
                   </div>
                 </div>
               </div>

@@ -8,7 +8,7 @@ import { getReceiverSocketId, io } from "../lib/socket.js";
 export const getUsersForSidebar = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
-    const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("-password");
+    const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("fullName email profilePic lastSeen");
 
     res.status(200).json(filteredUsers);
   } catch (error) {
@@ -50,6 +50,9 @@ export const sendMessage = async (req, res) => {
     const { text, image, groupId } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
+
+    // Update last seen for sender
+    await User.findByIdAndUpdate(senderId, { lastSeen: new Date() });
 
     let imageUrl;
     if (image) {
