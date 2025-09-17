@@ -17,7 +17,9 @@ export const useAuthStore = create((set, get) => ({
 
   checkAuth: async () => {
     try {
+      console.log("useAuthStore: checkAuth called");
       const res = await axiosInstance.get("/auth/check");
+      console.log("useAuthStore: checkAuth response:", res.data);
 
       set({ authUser: res.data });
       get().connectSocket();
@@ -25,6 +27,7 @@ export const useAuthStore = create((set, get) => ({
       console.log("Error in checkAuth:", error);
       set({ authUser: null });
     } finally {
+      console.log("useAuthStore: checkAuth finished, setting isCheckingAuth to false");
       set({ isCheckingAuth: false });
     }
   },
@@ -127,7 +130,7 @@ export const useAuthStore = create((set, get) => ({
 
     // Initialize call listeners after socket is connected
     socket.on("connect", () => {
-      console.log("🔌 Socket connected, initializing call listeners...");
+      console.log("🔌 BACKEND: Socket connected, initializing call listeners...");
       useCallStore.getState().initSocketListeners();
     });
   },

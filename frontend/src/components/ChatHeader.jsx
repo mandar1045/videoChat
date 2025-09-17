@@ -52,6 +52,20 @@ const ChatHeader = () => {
     }
   };
 
+  const handleGroupVideoCall = () => {
+    if (selectedGroup) {
+      console.log('Starting group video call for:', selectedGroup._id);
+      startCall(selectedGroup._id, 'video');
+    }
+  };
+
+  const handleGroupAudioCall = () => {
+    if (selectedGroup) {
+      console.log('Starting group audio call for:', selectedGroup._id);
+      startCall(selectedGroup._id, 'audio');
+    }
+  };
+
   const chat = selectedUser || selectedGroup;
 
   if (!chat) return null;
@@ -115,6 +129,26 @@ const ChatHeader = () => {
               onClick={handleVideoCall}
               className="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               title="Video Call"
+            >
+              <Video size={20} />
+            </button>
+          </>
+        )}
+
+        {/* Call buttons for groups */}
+        {selectedGroup && (
+          <>
+            <button
+              onClick={handleGroupAudioCall}
+              className="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              title="Group Audio Call"
+            >
+              <Phone size={20} />
+            </button>
+            <button
+              onClick={handleGroupVideoCall}
+              className="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              title="Group Video Call"
             >
               <Video size={20} />
             </button>

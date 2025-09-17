@@ -1,5 +1,6 @@
 import Navbar from "./components/Navbar";
 import Calls from "./components/Calls";
+import GroupCalls from "./components/GroupCalls";
 
 import HomePage from "./pages/HomePage";
 import SignUpPage from "./pages/SignUpPage";
@@ -16,12 +17,14 @@ import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
 const App = () => {
+  console.log("App component rendering");
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
   const { theme } = useThemeStore();
 
   console.log({ onlineUsers });
 
   useEffect(() => {
+    console.log("App: Calling checkAuth");
     checkAuth();
   }, [checkAuth]);
 
@@ -48,6 +51,7 @@ const App = () => {
 
       {/* Global Calls component - shows when there's an active call */}
       <Calls />
+      <GroupCalls />
 
       <Toaster />
     </div>

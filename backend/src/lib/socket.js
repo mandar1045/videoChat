@@ -1,8 +1,11 @@
 import { Server } from "socket.io";
 import User from "../models/user.model.js";
+import Group from "../models/group.model.js";
 
 // used to store online users
 const userSocketMap = {}; // {userId: [socketId1, socketId2, ...]}
+// used to store active group calls
+const activeGroupCalls = {}; // {groupId: {participants: [userId1, userId2, ...], callType: 'audio'|'video'}}
 let io;
 
 export function initSocket(server) {
@@ -133,6 +136,244 @@ export function initSocket(server) {
       if (receiverSocketIds.length > 0) {
         receiverSocketIds.forEach(socketId => {
           io.to(socketId).emit("call-ended");
+        });
+      }
+    });
+
+    // Group call events
+    socket.on("start-group-call", async (data) => {
+      console.log('📞 BACKEND: ===== RECEIVED START-GROUP-CALL EVENT =====');
+      console.log('📞 BACKEND: From user:', userId);
+      console.log('📞 BACKEND: Group ID:', data.groupId);
+      console.log('📞 BACKEND: Call type:', data.type);
+
+      const { groupId, type } = data;
+
+      try {
+        // Verify user is member of the group
+        const group = await Group.findById(groupId);
+        if (!group || !group.members.includes(userId)) {
+          console.error('📞 BACKEND: User not member of group');
+          return;
+        }
+
+        // Initialize group call if not exists
+        if (!activeGroupCalls[groupId]) {
+          activeGroupCalls[groupId] = {
+            participants: [],
+            callType: type,
+            startedBy: userId,
+            startedAt: new Date()
+          };
+        }
+
+        // Add user to participants if not already
+        if (!activeGroupCalls[groupId].participants.includes(userId)) {
+          activeGroupCalls[groupId].participants.push(userId);
+        }
+
+        // Notify all group members including the caller
+        const memberIds = group.members;
+        const caller = await User.findById(userId).select('fullName profilePic');
+
+        for (const memberId of memberIds) {
+          const memberSocketIds = getReceiverSocketId(memberId);
+          memberSocketIds.forEach(socketId => {
+            io.to(socketId).emit("group-call-started", {
+              groupId,
+              callType: type,
+              startedBy: {
+                _id: userId,
+                fullName: caller.fullName,
+                profilePic: caller.profilePic
+              },
+              participants: activeGroupCalls[groupId].participants
+            });
+          });
+        }
+
+        console.log('📞 BACKEND: Group call started successfully for group:', groupId);
+      } catch (error) {
+        console.error('📞 BACKEND: Error starting group call:', error);
+      }
+    });
+
+    socket.on("join-group-call", async (data) => {
+      console.log('📞 BACKEND: ===== RECEIVED JOIN-GROUP-CALL EVENT =====');
+      console.log('📞 BACKEND: From user:', userId);
+      console.log('📞 BACKEND: Group ID:', data.groupId);
+
+      const { groupId } = data;
+
+      try {
+        const group = await Group.findById(groupId);
+        if (!group || !group.members.includes(userId)) {
+          console.error('📞 BACKEND: User not member of group');
+          return;
+        }
+
+        if (!activeGroupCalls[groupId]) {
+          console.error('📞 BACKEND: No active call for this group');
+          return;
+        }
+
+        // Add user to participants if not already
+        if (!activeGroupCalls[groupId].participants.includes(userId)) {
+          activeGroupCalls[groupId].participants.push(userId);
+        }
+
+        // Notify all participants about the new joiner
+        const participantIds = activeGroupCalls[groupId].participants;
+        const joiner = await User.findById(userId).select('fullName profilePic');
+
+        for (const participantId of participantIds) {
+          if (participantId.toString() !== userId.toString()) {
+            const participantSocketIds = getReceiverSocketId(participantId);
+            participantSocketIds.forEach(socketId => {
+              io.to(socketId).emit("group-participant-joined", {
+                groupId,
+                participant: {
+                  _id: userId,
+                  fullName: joiner.fullName,
+                  profilePic: joiner.profilePic
+                },
+                participants: activeGroupCalls[groupId].participants
+              });
+            });
+          }
+        }
+
+        console.log('📞 BACKEND: User joined group call successfully');
+      } catch (error) {
+        console.error('📞 BACKEND: Error joining group call:', error);
+      }
+    });
+
+    socket.on("leave-group-call", async (data) => {
+      console.log('📞 BACKEND: ===== RECEIVED LEAVE-GROUP-CALL EVENT =====');
+      console.log('📞 BACKEND: From user:', userId);
+      console.log('📞 BACKEND: Group ID:', data.groupId);
+
+      const { groupId } = data;
+
+      try {
+        if (!activeGroupCalls[groupId]) {
+          console.error('📞 BACKEND: No active call for this group');
+          return;
+        }
+
+        // Remove user from participants
+        activeGroupCalls[groupId].participants = activeGroupCalls[groupId].participants.filter(
+          id => id.toString() !== userId.toString()
+        );
+
+        // Notify all remaining participants
+        const participantIds = activeGroupCalls[groupId].participants;
+        const leaver = await User.findById(userId).select('fullName profilePic');
+
+        for (const participantId of participantIds) {
+          const participantSocketIds = getReceiverSocketId(participantId);
+          participantSocketIds.forEach(socketId => {
+            io.to(socketId).emit("group-participant-left", {
+              groupId,
+              participant: {
+                _id: userId,
+                fullName: leaver.fullName,
+                profilePic: leaver.profilePic
+              },
+              participants: activeGroupCalls[groupId].participants
+            });
+          });
+        }
+
+        // If no participants left, end the call
+        if (activeGroupCalls[groupId].participants.length === 0) {
+          delete activeGroupCalls[groupId];
+          console.log('📞 BACKEND: Group call ended - no participants left');
+        }
+
+        console.log('📞 BACKEND: User left group call successfully');
+      } catch (error) {
+        console.error('📞 BACKEND: Error leaving group call:', error);
+      }
+    });
+
+    socket.on("end-group-call", async (data) => {
+      console.log('📞 BACKEND: ===== RECEIVED END-GROUP-CALL EVENT =====');
+      console.log('📞 BACKEND: From user:', userId);
+      console.log('📞 BACKEND: Group ID:', data.groupId);
+
+      const { groupId } = data;
+
+      try {
+        if (!activeGroupCalls[groupId]) {
+          console.error('📞 BACKEND: No active call for this group');
+          return;
+        }
+
+        // Notify all participants that the call has ended
+        const participantIds = activeGroupCalls[groupId].participants;
+
+        for (const participantId of participantIds) {
+          const participantSocketIds = getReceiverSocketId(participantId);
+          participantSocketIds.forEach(socketId => {
+            io.to(socketId).emit("group-call-ended", {
+              groupId,
+              endedBy: userId
+            });
+          });
+        }
+
+        // Clean up the call
+        delete activeGroupCalls[groupId];
+        console.log('📞 BACKEND: Group call ended successfully');
+      } catch (error) {
+        console.error('📞 BACKEND: Error ending group call:', error);
+      }
+    });
+
+    // Group call signaling events
+    socket.on("group-offer", (data) => {
+      console.log('📞 BACKEND: ===== RECEIVED GROUP-OFFER EVENT =====');
+      const { groupId, targetUserId, offer } = data;
+      const targetSocketIds = getReceiverSocketId(targetUserId);
+      if (targetSocketIds.length > 0) {
+        targetSocketIds.forEach(socketId => {
+          io.to(socketId).emit("group-offer", {
+            groupId,
+            from: userId,
+            offer
+          });
+        });
+      }
+    });
+
+    socket.on("group-answer", (data) => {
+      console.log('📞 BACKEND: ===== RECEIVED GROUP-ANSWER EVENT =====');
+      const { groupId, targetUserId, answer } = data;
+      const targetSocketIds = getReceiverSocketId(targetUserId);
+      if (targetSocketIds.length > 0) {
+        targetSocketIds.forEach(socketId => {
+          io.to(socketId).emit("group-answer", {
+            groupId,
+            from: userId,
+            answer
+          });
+        });
+      }
+    });
+
+    socket.on("group-ice-candidate", (data) => {
+      console.log('🧊 BACKEND: ===== RECEIVED GROUP-ICE-CANDIDATE EVENT =====');
+      const { groupId, targetUserId, candidate } = data;
+      const targetSocketIds = getReceiverSocketId(targetUserId);
+      if (targetSocketIds.length > 0) {
+        targetSocketIds.forEach(socketId => {
+          io.to(socketId).emit("group-ice-candidate", {
+            groupId,
+            from: userId,
+            candidate
+          });
         });
       }
     });
