@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import { X, Mic, Video, PhoneOff } from "lucide-react";
+import { X, Mic, Video, PhoneOff, RotateCcw } from "lucide-react";
 import { useCallStore } from "../store/useCallStore";
 
 const Calls = () => {
@@ -11,9 +11,12 @@ const Calls = () => {
     callType,
     localStream,
     remoteStream,
+    callError,
+    canRetryCall,
     answerCall,
     rejectCall,
     endCall,
+    retryCall,
   } = useCallStore();
   
 
@@ -22,10 +25,17 @@ const Calls = () => {
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
-      console.log('Setting local stream to video element:', localStream);
-      console.log('Local stream tracks:', localStream.getTracks());
+      console.log('🎥 SETTING LOCAL STREAM TO VIDEO ELEMENT');
+      console.log('Local stream:', localStream);
+      console.log('Local stream tracks:', localStream.getTracks().map(t => ({
+        kind: t.kind,
+        enabled: t.enabled,
+        readyState: t.readyState,
+        muted: t.muted
+      })));
       console.log('Local stream active:', localStream.active);
       console.log('Local video element:', localVideoRef.current);
+      console.log('Video element readyState before:', localVideoRef.current.readyState);
 
       // Check if video element already has a stream
       if (localVideoRef.current.srcObject) {
@@ -38,18 +48,48 @@ const Calls = () => {
       localVideoRef.current.load();
       console.log('Called load() on local video element');
 
+      // Try to play immediately
+      const playPromise = localVideoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          console.log('Local video started playing successfully');
+        }).catch(error => {
+          console.error('Error playing local video:', error);
+        });
+      }
+
       // Add event listeners for debugging
       localVideoRef.current.onloadedmetadata = () => {
         console.log('Local video metadata loaded');
         console.log('Local video dimensions:', localVideoRef.current.videoWidth, 'x', localVideoRef.current.videoHeight);
+        console.log('Video element readyState:', localVideoRef.current.readyState);
       };
 
       localVideoRef.current.oncanplay = () => {
         console.log('Local video can play');
+        console.log('Video element readyState:', localVideoRef.current.readyState);
+      };
+
+      localVideoRef.current.onplay = () => {
+        console.log('Local video started playing');
+      };
+
+      localVideoRef.current.onpause = () => {
+        console.log('Local video paused');
       };
 
       localVideoRef.current.onerror = (error) => {
         console.error('Local video error:', error);
+        console.error('Video error code:', error.code);
+        console.error('Video error message:', error.message);
+      };
+
+      localVideoRef.current.onwaiting = () => {
+        console.log('Local video is waiting for data');
+      };
+
+      localVideoRef.current.onstalled = () => {
+        console.log('Local video stalled');
       };
     } else if (localVideoRef.current && !localStream) {
       console.log('Clearing local video element');
@@ -170,6 +210,22 @@ const Calls = () => {
             </button>
           )}
         </div>
+
+        {/* Error Message */}
+        {callError && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <p className="text-sm font-medium">{callError}</p>
+            {canRetryCall && (
+              <button
+                onClick={retryCall}
+                className="mt-2 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-md transition-colors flex items-center gap-1"
+              >
+                <RotateCcw size={14} />
+                Try Again
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Call content */}
         {isReceivingCall ? (

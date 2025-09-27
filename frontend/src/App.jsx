@@ -11,6 +11,7 @@ import ProfilePage from "./pages/ProfilePage";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
+import { useCallStore } from "./store/useCallStore";
 import { useEffect } from "react";
 
 import { Loader } from "lucide-react";
@@ -20,13 +21,16 @@ const App = () => {
   console.log("App component rendering");
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
   const { theme } = useThemeStore();
+  const { initDebugFunctions } = useCallStore();
 
   console.log({ onlineUsers });
 
   useEffect(() => {
     console.log("App: Calling checkAuth");
     checkAuth();
-  }, [checkAuth]);
+    console.log("App: Initializing debug functions");
+    initDebugFunctions();
+  }, [checkAuth, initDebugFunctions]);
 
   console.log({ authUser });
 

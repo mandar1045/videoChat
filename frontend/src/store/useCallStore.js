@@ -3,6 +3,15 @@ import { useAuthStore } from "./useAuthStore";
 import { useChatStore } from "./useChatStore";
 
 export const useCallStore = create((set, get) => ({
+  // Expose debug functions globally for console access
+  initDebugFunctions: () => {
+    if (typeof window !== 'undefined') {
+      window.testCameraAccess = get().testCameraAccess;
+      window.debugCallState = get().debugCallState;
+      console.log('🔧 Debug functions exposed: window.testCameraAccess(), window.debugCallState()');
+    }
+  },
+
   // Initialize socket listeners
   initSocketListeners: () => {
     const socket = useAuthStore.getState().socket;
@@ -93,6 +102,8 @@ export const useCallStore = create((set, get) => ({
   remoteStream: null,
   peerConnection: null,
   iceCandidatesQueue: [], // Queue for ICE candidates received before remote description
+  callError: null, // Error message for call failures
+  canRetryCall: false, // Whether the call can be retried after fixing the issue
 
   // Group call state
   isInGroupCall: false,
@@ -147,22 +158,166 @@ export const useCallStore = create((set, get) => ({
     set({ isCalling: true, callType: type, caller: selectedUser });
     console.log('Call state set successfully');
 
-    // Get user media
+    // Get user media with fallback logic
+    let stream = null;
+    let actualCallType = type;
+
     try {
+      // Check browser support
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Browser does not support getUserMedia');
+      }
+
+      // Log available devices
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(d => d.kind === 'videoinput');
+        const audioDevices = devices.filter(d => d.kind === 'audioinput');
+        console.log('Available devices:', {
+          video: videoDevices.map(d => ({ deviceId: d.deviceId, label: d.label })),
+          audio: audioDevices.map(d => ({ deviceId: d.deviceId, label: d.label }))
+        });
+      } catch (enumError) {
+        console.warn('Could not enumerate devices:', enumError);
+      }
+
       const constraints = {
         audio: true,
         video: type === 'video' ? true : false,
       };
 
       console.log('Requesting media with constraints:', constraints);
+      console.log('Browser user agent:', navigator.userAgent);
+      console.log('Is HTTPS or localhost:', location.protocol === 'https:' || location.hostname === 'localhost');
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log('Got media stream with tracks:', stream.getTracks().map(t => ({ kind: t.kind, label: t.label })));
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('Got media stream with tracks:', stream.getTracks().map(t => ({
+        kind: t.kind,
+        label: t.label,
+        enabled: t.enabled,
+        readyState: t.readyState,
+        muted: t.muted
+      })));
 
-      set({ localStream: stream });
+      // Check if video track is actually present for video calls
+      if (type === 'video') {
+        const videoTracks = stream.getVideoTracks();
+        if (videoTracks.length === 0) {
+          console.error('No video tracks in stream despite requesting video');
+        } else {
+          console.log('Video track settings:', videoTracks[0].getSettings());
+          console.log('Video track constraints:', videoTracks[0].getConstraints());
+        }
+      }
 
-      // Create peer connection
-      const pc = new RTCPeerConnection({
+      // Clear any previous error
+      set({ callError: null });
+    } catch (error) {
+      console.error('Error accessing media devices:', error);
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      
+      // Enhanced diagnostic logging for NotReadableError
+      if (error.name === 'NotReadableError') {
+        console.error('🔍 DIAGNOSTIC: NotReadableError detected - camera likely in use or hardware issue');
+        console.error('🔍 DIAGNOSTIC: Browser:', navigator.userAgent);
+        console.error('🔍 DIAGNOSTIC: Platform:', navigator.platform);
+        console.error('🔍 DIAGNOSTIC: Constraints used:', constraints);
+        
+        // Check if any media tracks are already active
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const videoDevices = devices.filter(d => d.kind === 'videoinput');
+          console.error('🔍 DIAGNOSTIC: Available video devices:', videoDevices.length);
+          videoDevices.forEach((device, index) => {
+            console.error(`🔍 DIAGNOSTIC: Device ${index + 1}: ${device.label || 'Unnamed'} (ID: ${device.deviceId.substring(0, 20)}...)`);
+          });
+        } catch (enumError) {
+          console.error('🔍 DIAGNOSTIC: Could not enumerate devices:', enumError);
+        }
+        
+        // Test with minimal constraints to isolate the issue
+        console.error('🔍 DIAGNOSTIC: Testing with minimal video constraints...');
+        try {
+          const testStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 320, height: 240 },
+            audio: false
+          });
+          console.error('🔍 DIAGNOSTIC: Minimal video constraints work - issue might be with specific constraints');
+          testStream.getTracks().forEach(track => track.stop());
+        } catch (testError) {
+          console.error('🔍 DIAGNOSTIC: Minimal video constraints also fail:', testError.name, testError.message);
+          
+          // Test audio only to see if it's a video-specific issue
+          try {
+            const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            console.error('🔍 DIAGNOSTIC: Audio-only access works - issue is video-specific');
+            audioStream.getTracks().forEach(track => track.stop());
+          } catch (audioError) {
+            console.error('🔍 DIAGNOSTIC: Audio access also fails:', audioError.name, audioError.message);
+          }
+        }
+      }
+
+      // If video call failed, try audio-only fallback
+      if (type === 'video') {
+        console.log('Video access failed, trying audio-only fallback...');
+        try {
+          const audioConstraints = { audio: true, video: false };
+          stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+          console.log('Audio-only fallback successful');
+          actualCallType = 'audio';
+          set({ callError: 'Video unavailable - switched to audio call' });
+        } catch (audioError) {
+          console.error('Audio fallback also failed:', audioError);
+
+          // For development: create a mock video stream if no camera available
+          if (error.name === 'NotFoundError' && process.env.NODE_ENV === 'development') {
+            console.log('Development mode: Creating mock video stream');
+            stream = await get().createMockVideoStream();
+            actualCallType = 'video';
+            set({ callError: null });
+          } else {
+            // Determine error type and set appropriate message
+            let errorMessage = 'Unable to access camera or microphone';
+            let canRetry = false;
+
+            if (error.name === 'NotReadableError') {
+              errorMessage = 'Camera is already in use by another application. Please close other apps using the camera (like video conferencing, screen recording, or browser tabs) and try again.';
+              canRetry = true; // User can resolve this by closing other apps
+            } else if (error.name === 'NotAllowedError') {
+              errorMessage = 'Camera/microphone access denied. Please check permissions in your browser settings and refresh the page.';
+            } else if (error.name === 'NotFoundError') {
+              errorMessage = 'No camera or microphone found. For development, ensure you have camera access or run on a device with camera.';
+            }
+
+            set({
+              isCalling: false,
+              callError: errorMessage,
+              canRetryCall: canRetry
+            });
+            return;
+          }
+        }
+      } else {
+        // Audio call failed
+        let errorMessage = 'Unable to access microphone';
+        if (error.name === 'NotAllowedError') {
+          errorMessage = 'Microphone access denied. Please check permissions.';
+        } else if (error.name === 'NotFoundError') {
+          errorMessage = 'No microphone found';
+        }
+
+        set({ isCalling: false, callError: errorMessage });
+        return;
+      }
+    }
+
+    set({ localStream: stream, callType: actualCallType, callError: null, canRetryCall: false });
+
+    // Create peer connection
+    const pc = new RTCPeerConnection({
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
@@ -286,10 +441,6 @@ export const useCallStore = create((set, get) => ({
         set({ isCalling: false });
         return;
       }
-    } catch (error) {
-      console.error('Error starting call:', error);
-      set({ isCalling: false });
-    }
   },
 
   answerCall: async () => {
@@ -372,6 +523,19 @@ export const useCallStore = create((set, get) => ({
     get().endCall();
   },
 
+  retryCall: async () => {
+    const { callType, caller } = get();
+    console.log('🔄 Retrying call after fixing camera access issue');
+
+    // Clear previous error state
+    set({ callError: null, canRetryCall: false });
+
+    // Retry the call with the same parameters
+    if (caller && callType) {
+      await get().startCall(caller._id, callType);
+    }
+  },
+
   endCall: () => {
     const { localStream, peerConnection, caller } = get();
     const socket = useAuthStore.getState().socket;
@@ -399,6 +563,8 @@ export const useCallStore = create((set, get) => ({
       remoteStream: null,
       peerConnection: null,
       iceCandidatesQueue: [],
+      callError: null,
+      canRetryCall: false,
     });
   },
 
@@ -1137,6 +1303,72 @@ export const useCallStore = create((set, get) => ({
     }
   },
 
+  // Create a mock video stream for development when no camera is available
+  createMockVideoStream: async () => {
+    console.log('Creating mock video stream for development');
+
+    // Create a canvas to generate video frames
+    const canvas = document.createElement('canvas');
+    canvas.width = 640;
+    canvas.height = 480;
+    const ctx = canvas.getContext('2d');
+
+    // Create a video track from the canvas
+    const stream = canvas.captureStream(30); // 30 FPS
+
+    // Draw a simple animation on the canvas
+    let frameCount = 0;
+    const drawFrame = () => {
+      frameCount++;
+
+      // Clear canvas
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw a simple pattern
+      ctx.fillStyle = '#ff6b6b';
+      ctx.fillRect(50, 50, 100, 100);
+
+      ctx.fillStyle = '#4ecdc4';
+      ctx.beginPath();
+      ctx.arc(320, 240, 50 + Math.sin(frameCount * 0.1) * 20, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Add text
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Mock Camera Feed', canvas.width / 2, canvas.height / 2 + 100);
+      ctx.fillText('Development Mode', canvas.width / 2, canvas.height / 2 + 130);
+
+      requestAnimationFrame(drawFrame);
+    };
+
+    drawFrame();
+
+    // Add a mock audio track (silent)
+    const audioContext = new AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    const destination = audioContext.createMediaStreamDestination();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(destination);
+    gainNode.gain.value = 0; // Silent
+
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+    oscillator.start();
+
+    // Combine video and audio streams
+    const videoTrack = stream.getVideoTracks()[0];
+    const audioTrack = destination.stream.getAudioTracks()[0];
+
+    const mockStream = new MediaStream([videoTrack, audioTrack]);
+
+    console.log('Mock video stream created:', mockStream);
+    return mockStream;
+  },
+
   // Debug function to check current call state
   debugCallState: () => {
     const state = get();
@@ -1177,5 +1409,107 @@ export const useCallStore = create((set, get) => ({
     }
 
     console.log('=== 🏁 END CALL STATE DEBUG ===');
+  },
+
+  // Debug function to test camera access
+  testCameraAccess: async () => {
+    console.log('=== 📷 CAMERA ACCESS TEST ===');
+
+    try {
+      // Check browser support
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('❌ Browser does not support getUserMedia');
+        return { success: false, error: 'Browser not supported' };
+      }
+
+      console.log('✅ getUserMedia supported');
+
+      // Check permissions API
+      if (navigator.permissions) {
+        try {
+          const permission = await navigator.permissions.query({ name: 'camera' });
+          console.log('Camera permission state:', permission.state);
+        } catch (permError) {
+          console.warn('Could not check camera permission:', permError);
+        }
+      }
+
+      // Enumerate devices
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(d => d.kind === 'videoinput');
+        console.log('Available video devices:', videoDevices.length);
+        videoDevices.forEach((device, index) => {
+          console.log(`  ${index + 1}. ${device.label || 'Unnamed device'} (ID: ${device.deviceId})`);
+        });
+
+        if (videoDevices.length === 0) {
+          console.error('❌ No video devices found');
+          return { success: false, error: 'No camera devices' };
+        }
+      } catch (enumError) {
+        console.warn('Could not enumerate devices:', enumError);
+      }
+
+      // Test getUserMedia
+      console.log('Testing getUserMedia...');
+      const testStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480 },
+        audio: false
+      });
+
+      console.log('✅ getUserMedia successful');
+      console.log('Stream tracks:', testStream.getTracks().map(t => ({
+        kind: t.kind,
+        enabled: t.enabled,
+        readyState: t.readyState
+      })));
+
+      // Test video element
+      const testVideo = document.createElement('video');
+      testVideo.srcObject = testStream;
+      testVideo.muted = true;
+
+      return new Promise((resolve) => {
+        testVideo.onloadedmetadata = () => {
+          console.log('✅ Video metadata loaded, dimensions:', testVideo.videoWidth, 'x', testVideo.videoHeight);
+          testStream.getTracks().forEach(track => track.stop());
+          resolve({ success: true });
+        };
+
+        testVideo.onerror = (error) => {
+          console.error('❌ Video element error:', error);
+          testStream.getTracks().forEach(track => track.stop());
+          resolve({ success: false, error: 'Video element failed' });
+        };
+
+        // Timeout
+        setTimeout(() => {
+          console.warn('⚠️ Video test timed out');
+          testStream.getTracks().forEach(track => track.stop());
+          resolve({ success: false, error: 'Timeout' });
+        }, 5000);
+      });
+
+    } catch (error) {
+      console.error('❌ Camera access test failed:', error);
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+
+      let errorType = 'Unknown';
+      if (error.name === 'NotAllowedError') {
+        errorType = 'Permission denied';
+      } else if (error.name === 'NotFoundError') {
+        errorType = 'No camera found';
+      } else if (error.name === 'NotReadableError') {
+        errorType = 'Camera in use';
+      } else if (error.name === 'OverconstrainedError') {
+        errorType = 'Constraints not supported';
+      }
+
+      return { success: false, error: errorType, details: error.message };
+    }
+
+    console.log('=== 🏁 END CAMERA ACCESS TEST ===');
   },
 }));
