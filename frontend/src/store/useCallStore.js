@@ -322,9 +322,14 @@ export const useCallStore = create((set, get) => ({
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
           {
-            urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
-            username: 'webrtc',
-            credential: 'webrtc'
+            urls: 'turn:openrelay.metered.ca:80',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          },
+          {
+            urls: 'turn:openrelay.metered.ca:443',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
           }
         ],
         iceCandidatePoolSize: 10,
@@ -577,9 +582,14 @@ export const useCallStore = create((set, get) => ({
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         {
-          urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
-          username: 'webrtc',
-          credential: 'webrtc'
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
         }
       ],
       iceCandidatePoolSize: 10,
@@ -838,25 +848,31 @@ export const useCallStore = create((set, get) => ({
 
       console.log('🎯 Join-group-call event emitted successfully');
 
-      // Create peer connections with all other participants and send offers
+      // Create peer connections with participants that should be initiated by this user
+      // Only create connection if this user's ID is "less than" the other participant's ID
+      // This prevents duplicate connections in the mesh topology
       const otherParticipants = currentGroupCall.participants.filter(p => p !== authUser._id);
       for (const participantId of otherParticipants) {
-        const pc = get().createGroupPeerConnection(participantId);
-        if (pc) {
-          try {
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
+        if (authUser._id < participantId) {
+          const pc = get().createGroupPeerConnection(participantId);
+          if (pc) {
+            try {
+              const offer = await pc.createOffer();
+              await pc.setLocalDescription(offer);
 
-            socket.emit('group-offer', {
-              groupId,
-              targetUserId: participantId,
-              offer,
-            });
+              socket.emit('group-offer', {
+                groupId,
+                targetUserId: participantId,
+                offer,
+              });
 
-            console.log('Sent group offer to existing participant:', participantId);
-          } catch (error) {
-            console.error('Error creating/sending group offer to existing participant:', error);
+              console.log('Sent group offer to participant:', participantId);
+            } catch (error) {
+              console.error('Error creating/sending group offer to participant:', error);
+            }
           }
+        } else {
+          console.log('Skipping connection initiation to', participantId, '- other user will initiate');
         }
       }
     } catch (error) {
@@ -948,25 +964,30 @@ export const useCallStore = create((set, get) => ({
         },
       });
 
-      // Create peer connections with all other participants and send offers
+      // Create peer connections with participants that should be initiated by this user
+      // Only create connection if this user's ID is "less than" the other participant's ID
       const otherParticipants = data.participants.filter(p => p !== authUser._id);
       for (const participantId of otherParticipants) {
-        const pc = get().createGroupPeerConnection(participantId);
-        if (pc) {
-          try {
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
+        if (authUser._id < participantId) {
+          const pc = get().createGroupPeerConnection(participantId);
+          if (pc) {
+            try {
+              const offer = await pc.createOffer();
+              await pc.setLocalDescription(offer);
 
-            socket.emit('group-offer', {
-              groupId: data.groupId,
-              targetUserId: participantId,
-              offer,
-            });
+              socket.emit('group-offer', {
+                groupId: data.groupId,
+                targetUserId: participantId,
+                offer,
+              });
 
-            console.log('Sent group offer to:', participantId);
-          } catch (error) {
-            console.error('Error creating/sending group offer:', error);
+              console.log('Sent group offer to:', participantId);
+            } catch (error) {
+              console.error('Error creating/sending group offer:', error);
+            }
           }
+        } else {
+          console.log('Skipping connection initiation to', participantId, '- other user will initiate');
         }
       }
     } else if (isInitiator && isInGroupCall) {
@@ -1008,7 +1029,8 @@ export const useCallStore = create((set, get) => ({
 
       // Only create peer connection and send offer if we're already in the call
       // and the new participant is not ourselves
-      if (get().isInGroupCall && data.participant._id !== authUser._id) {
+      // Only initiate if this user's ID is "less than" the new participant's ID
+      if (get().isInGroupCall && data.participant._id !== authUser._id && authUser._id < data.participant._id) {
         const pc = get().createGroupPeerConnection(data.participant._id);
         if (pc) {
           try {
@@ -1026,6 +1048,8 @@ export const useCallStore = create((set, get) => ({
             console.error('Error creating/sending group offer to new participant:', error);
           }
         }
+      } else if (data.participant._id !== authUser._id && authUser._id > data.participant._id) {
+        console.log('New participant', data.participant._id, 'will initiate connection to us');
       }
     }
   },
@@ -1087,9 +1111,14 @@ export const useCallStore = create((set, get) => ({
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         {
-          urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
-          username: 'webrtc',
-          credential: 'webrtc'
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
         }
       ],
       iceCandidatePoolSize: 10,
@@ -1214,6 +1243,11 @@ export const useCallStore = create((set, get) => ({
       console.log('📞 FRONTEND: Group offer handled successfully');
     } catch (error) {
       console.error('📞 FRONTEND: Error handling group offer:', error);
+      // If setting remote description fails, it might be because we already have a connection
+      // initiated by us. In that case, we can ignore this offer.
+      if (error.name === 'InvalidStateError') {
+        console.log('📞 FRONTEND: Ignoring duplicate offer - connection already established');
+      }
     }
   },
 
