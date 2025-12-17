@@ -22,9 +22,7 @@ const GroupCalls = () => {
 
   useEffect(() => {
     if (localVideoRef.current && groupLocalStream) {
-      console.log('Setting group local stream to video element:', groupLocalStream);
       localVideoRef.current.srcObject = groupLocalStream;
-      localVideoRef.current.load();
     } else if (localVideoRef.current && !groupLocalStream) {
       localVideoRef.current.srcObject = null;
     }
@@ -34,31 +32,21 @@ const GroupCalls = () => {
     // Update remote video elements when remote streams change
     Object.entries(groupRemoteStreams).forEach(([userId, stream]) => {
       const videoRef = remoteVideoRefs.current[userId];
-      if (videoRef && stream) {
-        console.log('🎥 Setting remote stream for user', userId, ':', stream);
-        console.log('🎥 Stream tracks:', stream.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled })));
-
-        // Check if the video element already has this stream
-        if (videoRef.srcObject !== stream) {
-          videoRef.srcObject = stream;
-          videoRef.load();
-
-          // Force play
-          const playPromise = videoRef.play();
-          if (playPromise !== undefined) {
-            playPromise.then(() => {
-              console.log('🎥 Remote video started playing for user:', userId);
-            }).catch(error => {
-              console.error('🎥 Error playing remote video for user:', userId, error);
-            });
-          }
+      if (videoRef && stream && videoRef.srcObject !== stream) {
+        videoRef.srcObject = stream;
+        
+        // Try to play the video
+        const playPromise = videoRef.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.error('Error playing remote video for user:', userId, error);
+          });
         }
       }
     });
   }, [groupRemoteStreams]);
 
   if (!isInGroupCall && !isStartingGroupCall && !isReceivingGroupCall) {
-    console.log('GroupCalls component not rendering - no active group call state');
     return null;
   }
 
@@ -78,17 +66,6 @@ const GroupCalls = () => {
   const participants = currentGroupCall?.participants || [];
   const remoteParticipants = participants.filter(p => p !== authUser?._id);
   const totalParticipants = participants.length;
-
-  console.log('GroupCalls component render check:', {
-    isInGroupCall,
-    isStartingGroupCall,
-    isReceivingGroupCall,
-    currentGroupCall,
-    participants: currentGroupCall?.participants,
-    remoteParticipants,
-    groupRemoteStreams: Object.keys(groupRemoteStreams),
-    totalParticipants
-  });
 
   // Dynamic grid classes based on number of video slots (local + remote participants)
   const getGridClasses = () => {
@@ -196,18 +173,15 @@ const GroupCalls = () => {
                       ref={(el) => {
                         if (el) {
                           remoteVideoRefs.current[participantId] = el;
-                          console.log('🎥 Video element created for user:', participantId);
-
+                          
                           // If we already have a stream, set it immediately
                           const stream = groupRemoteStreams[participantId];
                           if (stream && el.srcObject !== stream) {
-                            console.log('🎥 Setting stream immediately for user:', participantId);
                             el.srcObject = stream;
-                            el.load();
                             const playPromise = el.play();
                             if (playPromise !== undefined) {
                               playPromise.catch(error => {
-                                console.error('🎥 Error playing video for user:', participantId, error);
+                                console.error('Error playing video for user:', participantId, error);
                               });
                             }
                           }
@@ -217,9 +191,6 @@ const GroupCalls = () => {
                       playsInline
                       muted={false}
                       className="w-full h-full object-cover"
-                      onLoadedMetadata={() => console.log('🎥 Video metadata loaded for user:', participantId)}
-                      onCanPlay={() => console.log('🎥 Video can play for user:', participantId)}
-                      onError={(e) => console.error('🎥 Video error for user:', participantId, e)}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
