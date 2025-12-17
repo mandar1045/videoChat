@@ -43,11 +43,8 @@ const Calls = () => {
 
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
-      console.log('Setting remote stream to video element');
-      
-      // Note: The stream is already set via the callback ref below,
-      // but we handle it here for consistency
-      // Try to play the video
+      // The stream is set via the callback ref in the video element below
+      // This effect triggers playback when the stream changes
       const playPromise = remoteVideoRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch(error => {
