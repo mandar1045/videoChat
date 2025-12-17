@@ -25,173 +25,40 @@ const Calls = () => {
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
-      console.log('🎥 SETTING LOCAL STREAM TO VIDEO ELEMENT');
-      console.log('Local stream:', localStream);
-      console.log('Local stream tracks:', localStream.getTracks().map(t => ({
-        kind: t.kind,
-        enabled: t.enabled,
-        readyState: t.readyState,
-        muted: t.muted
-      })));
-      console.log('Local stream active:', localStream.active);
-      console.log('Local video element:', localVideoRef.current);
-      console.log('Video element readyState before:', localVideoRef.current.readyState);
-
-      // Check if video element already has a stream
-      if (localVideoRef.current.srcObject) {
-        console.log('Local video element already has srcObject, replacing it');
-      }
-
+      console.log('Setting local stream to video element');
+      
       localVideoRef.current.srcObject = localStream;
 
-      // Force the video element to load the new stream
-      localVideoRef.current.load();
-      console.log('Called load() on local video element');
-
-      // Try to play immediately
+      // Try to play the video
       const playPromise = localVideoRef.current.play();
       if (playPromise !== undefined) {
-        playPromise.then(() => {
-          console.log('Local video started playing successfully');
-        }).catch(error => {
+        playPromise.catch(error => {
           console.error('Error playing local video:', error);
         });
       }
-
-      // Add event listeners for debugging
-      localVideoRef.current.onloadedmetadata = () => {
-        console.log('Local video metadata loaded');
-        console.log('Local video dimensions:', localVideoRef.current.videoWidth, 'x', localVideoRef.current.videoHeight);
-        console.log('Video element readyState:', localVideoRef.current.readyState);
-      };
-
-      localVideoRef.current.oncanplay = () => {
-        console.log('Local video can play');
-        console.log('Video element readyState:', localVideoRef.current.readyState);
-      };
-
-      localVideoRef.current.onplay = () => {
-        console.log('Local video started playing');
-      };
-
-      localVideoRef.current.onpause = () => {
-        console.log('Local video paused');
-      };
-
-      localVideoRef.current.onerror = (error) => {
-        console.error('Local video error:', error);
-        console.error('Video error code:', error.code);
-        console.error('Video error message:', error.message);
-      };
-
-      localVideoRef.current.onwaiting = () => {
-        console.log('Local video is waiting for data');
-      };
-
-      localVideoRef.current.onstalled = () => {
-        console.log('Local video stalled');
-      };
     } else if (localVideoRef.current && !localStream) {
-      console.log('Clearing local video element');
       localVideoRef.current.srcObject = null;
     }
   }, [localStream]);
 
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
-      console.log('Setting remote stream to video element:', remoteStream);
-      console.log('Remote stream tracks:', remoteStream.getTracks());
-      console.log('Remote stream active:', remoteStream.active);
-      console.log('Remote video element:', remoteVideoRef.current);
-      console.log('Remote video element readyState:', remoteVideoRef.current.readyState);
-      window.remoteStream = remoteStream; // Add global reference for debugging
-
-      // Check if video element already has a stream
-      if (remoteVideoRef.current.srcObject) {
-        console.log('Video element already has srcObject, replacing it');
-      }
-
-      console.log('🎥 REMOTE STREAM ALREADY SET VIA CALLBACK REF');
-      console.log('Remote stream object:', remoteStream);
-      console.log('Remote stream active:', remoteStream.active);
-      console.log('Remote stream tracks:', remoteStream.getTracks().map(t => ({
-        kind: t.kind,
-        enabled: t.enabled,
-        muted: t.muted,
-        readyState: t.readyState
-      })));
-      console.log('Called load() on remote video element');
-
-      // Check video element state after setting stream
-      setTimeout(() => {
-        console.log('🎥 VIDEO ELEMENT STATE AFTER STREAM SET:');
-        console.log('Video readyState:', remoteVideoRef.current.readyState);
-        console.log('Video networkState:', remoteVideoRef.current.networkState);
-        console.log('Video srcObject:', remoteVideoRef.current.srcObject);
-        console.log('Video videoWidth:', remoteVideoRef.current.videoWidth);
-        console.log('Video videoHeight:', remoteVideoRef.current.videoHeight);
-      }, 1000);
-
-      // Add event listeners for debugging
-      remoteVideoRef.current.onloadedmetadata = () => {
-        console.log('Remote video metadata loaded');
-        console.log('Video dimensions:', remoteVideoRef.current.videoWidth, 'x', remoteVideoRef.current.videoHeight);
-      };
-
-      remoteVideoRef.current.oncanplay = () => {
-        console.log('Remote video can play');
-        console.log('Video readyState:', remoteVideoRef.current.readyState);
-      };
-
-      remoteVideoRef.current.onplay = () => {
-        console.log('Remote video started playing');
-      };
-
-      remoteVideoRef.current.onpause = () => {
-        console.log('Remote video paused');
-      };
-
-      remoteVideoRef.current.onerror = (error) => {
-        console.error('Remote video error:', error);
-        console.error('Video error code:', error.code);
-        console.error('Video error message:', error.message);
-      };
-
-      remoteVideoRef.current.onwaiting = () => {
-        console.log('Remote video is waiting for data');
-      };
-
-      remoteVideoRef.current.onstalled = () => {
-        console.log('Remote video stalled');
-      };
-
-      // Try to play the video, but handle autoplay restrictions
+      // The stream is set via the callback ref in the video element below
+      // This effect triggers playback when the stream changes
       const playPromise = remoteVideoRef.current.play();
       if (playPromise !== undefined) {
-        playPromise.then(() => {
-          console.log('Remote video started playing successfully');
-        }).catch(error => {
+        playPromise.catch(error => {
           console.error('Error playing remote video:', error);
-          console.error('Play error name:', error.name);
-          console.error('Play error message:', error.message);
-          // If autoplay fails, we'll rely on user interaction
-          // The video will show but won't autoplay due to browser policies
         });
       }
     } else if (remoteVideoRef.current && !remoteStream) {
-      console.log('Clearing remote video element');
       remoteVideoRef.current.srcObject = null;
     }
   }, [remoteStream]);
 
-  console.log('Calls component render check:', { isInCall, isCalling, isReceivingCall });
-
   if (!isInCall && !isCalling && !isReceivingCall) {
-    console.log('Calls component not rendering - no active call state');
     return null;
   }
-
-  console.log('Calls component rendering with state:', { isInCall, isCalling, isReceivingCall, callType, caller });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
@@ -264,9 +131,7 @@ const Calls = () => {
                 ref={(el) => {
                   remoteVideoRef.current = el;
                   if (el && remoteStream) {
-                    console.log('Setting remote stream via callback ref:', remoteStream);
                     el.srcObject = remoteStream;
-                    el.load();
                   }
                 }}
                 autoPlay
