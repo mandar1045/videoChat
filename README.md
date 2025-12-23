@@ -1,4 +1,4 @@
-# 🎥 YoChat - Full Stack Realtime Video Chat App
+# 🎥 YoChat - Realtime Video Chat App
 
 ![YoChat Logo](frontend/public/yochat-logo.svg)
 
