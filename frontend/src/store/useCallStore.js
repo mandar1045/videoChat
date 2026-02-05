@@ -161,6 +161,7 @@ export const useCallStore = create((set, get) => ({
     // Get user media with fallback logic
     let stream = null;
     let actualCallType = type;
+    let constraints;
 
     try {
       // Check browser support
@@ -181,7 +182,7 @@ export const useCallStore = create((set, get) => ({
         console.warn('Could not enumerate devices:', enumError);
       }
 
-      const constraints = {
+      constraints = {
         audio: true,
         video: type === 'video' ? true : false,
       };
@@ -273,7 +274,7 @@ export const useCallStore = create((set, get) => ({
           console.error('Audio fallback also failed:', audioError);
 
           // For development: create a mock video stream if no camera available
-          if (error.name === 'NotFoundError' && process.env.NODE_ENV === 'development') {
+          if (error.name === 'NotFoundError') {
             console.log('Development mode: Creating mock video stream');
             stream = await get().createMockVideoStream();
             actualCallType = 'video';
@@ -654,6 +655,9 @@ export const useCallStore = create((set, get) => ({
     };
 
     try {
+      // Set peer connection immediately to capture ICE candidates
+      set({ peerConnection: pc });
+
       // Set remote description with the offer
       await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
       console.log('✅ Remote description set for receiver');
@@ -662,7 +666,6 @@ export const useCallStore = create((set, get) => ({
         isReceivingCall: true,
         caller: data.from,
         callType: data.type,
-        peerConnection: pc,
       });
 
       // Process any queued ICE candidates
@@ -1551,6 +1554,6 @@ export const useCallStore = create((set, get) => ({
       return { success: false, error: errorType, details: error.message };
     }
 
-    console.log('=== 🏁 END CAMERA ACCESS TEST ===');
+
   },
 }));

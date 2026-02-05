@@ -34,7 +34,16 @@ const Calls = () => {
   // Handle Remote Stream
   useEffect(() => {
     if (remoteStream && remoteVideoRef.current) {
+      console.log('🎥 Setting remote stream in Calls.jsx', remoteStream);
       remoteVideoRef.current.srcObject = remoteStream;
+
+      // Explicitly play the video to ensure it starts
+      const playPromise = remoteVideoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error('Error playing remote video:', error);
+        });
+      }
     }
   }, [remoteStream, isInCall]);
 
