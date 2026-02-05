@@ -217,14 +217,14 @@ export const useCallStore = create((set, get) => ({
       console.error('Error name:', error.name);
       console.error('Error message:', error.message);
       console.error('Error stack:', error.stack);
-      
+
       // Enhanced diagnostic logging for NotReadableError
       if (error.name === 'NotReadableError') {
         console.error('🔍 DIAGNOSTIC: NotReadableError detected - camera likely in use or hardware issue');
         console.error('🔍 DIAGNOSTIC: Browser:', navigator.userAgent);
         console.error('🔍 DIAGNOSTIC: Platform:', navigator.platform);
         console.error('🔍 DIAGNOSTIC: Constraints used:', constraints);
-        
+
         // Check if any media tracks are already active
         try {
           const devices = await navigator.mediaDevices.enumerateDevices();
@@ -236,7 +236,7 @@ export const useCallStore = create((set, get) => ({
         } catch (enumError) {
           console.error('🔍 DIAGNOSTIC: Could not enumerate devices:', enumError);
         }
-        
+
         // Test with minimal constraints to isolate the issue
         console.error('🔍 DIAGNOSTIC: Testing with minimal video constraints...');
         try {
@@ -248,7 +248,7 @@ export const useCallStore = create((set, get) => ({
           testStream.getTracks().forEach(track => track.stop());
         } catch (testError) {
           console.error('🔍 DIAGNOSTIC: Minimal video constraints also fail:', testError.name, testError.message);
-          
+
           // Test audio only to see if it's a video-specific issue
           try {
             const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
@@ -318,134 +318,139 @@ export const useCallStore = create((set, get) => ({
 
     // Create peer connection
     const pc = new RTCPeerConnection({
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          {
-            urls: 'turn:openrelay.metered.ca:80',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
-          },
-          {
-            urls: 'turn:openrelay.metered.ca:443',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
-          }
-        ],
-        iceCandidatePoolSize: 10,
-      });
-
-      pc.onicecandidate = (event) => {
-        console.log('ICE candidate for caller:', event.candidate);
-        if (event.candidate) {
-          socket.emit('ice-candidate', {
-            candidate: event.candidate,
-            to: targetId,
-          });
-          console.log('ICE candidate sent');
-        } else {
-          console.log('ICE candidate gathering complete for caller');
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        {
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
         }
-      };
+      ],
+      iceCandidatePoolSize: 10,
+    });
 
-      pc.ontrack = (event) => {
-        console.log('🎯 ONTRACK EVENT FIRED FOR CALLER - THIS IS IMPORTANT!');
-        console.log('Event object:', event);
-        console.log('Event streams:', event.streams);
-        console.log('Number of streams:', event.streams?.length);
-
-        if (!event.streams || event.streams.length === 0) {
-          console.error('❌ No streams in ontrack event for caller');
-          return;
-        }
-
-        const remoteMediaStream = event.streams[0];
-        console.log('📺 Remote media stream for caller:', remoteMediaStream);
-        console.log('🎵 Remote media stream tracks:', remoteMediaStream.getTracks().map(t => ({
-          kind: t.kind,
-          id: t.id,
-          enabled: t.enabled,
-          readyState: t.readyState
-        })));
-
-        // Ensure tracks are enabled
-        remoteMediaStream.getTracks().forEach(track => {
-          if (!track.enabled) {
-            console.log(`⚠️ Enabling ${track.kind} track for caller`);
-            track.enabled = true;
-          }
-        });
-
-        if (remoteMediaStream.getTracks().length > 0) {
-          set({ remoteStream: remoteMediaStream });
-          console.log('✅ Remote stream set for caller with', remoteMediaStream.getTracks().length, 'tracks');
-        } else {
-          console.warn('⚠️ Remote stream has no tracks for caller');
-        }
-      };
-
-      // Add local stream tracks
-      console.log('🎥 Adding local tracks to peer connection...');
-      stream.getTracks().forEach(track => {
-        console.log('📤 Adding track to peer connection:', {
-          kind: track.kind,
-          id: track.id,
-          enabled: track.enabled,
-          label: track.label,
-          readyState: track.readyState
-        });
-
-        // Ensure track is enabled before adding
-        if (!track.enabled) {
-          track.enabled = true;
-          console.log(`✅ Enabled ${track.kind} track`);
-        }
-
-        const sender = pc.addTrack(track, stream);
-        console.log('✅ Track added to peer connection, sender:', sender);
-      });
-      console.log('🎥 Finished adding local tracks');
-
-      set({ peerConnection: pc });
-
-      pc.onconnectionstatechange = () => {
-        console.log('Connection state for caller:', pc.connectionState);
-        if (pc.connectionState === 'connected') {
-          console.log('✅ WebRTC connection established for caller');
-        } else if (pc.connectionState === 'failed') {
-          console.error('❌ WebRTC connection failed for caller');
-        }
-      };
-
-      // Create offer
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-
-      console.log('Emitting call-user', { to: targetId, offer, type });
-
-      if (socket && socket.connected) {
-        socket.emit('call-user', {
+    pc.onicecandidate = (event) => {
+      console.log('ICE candidate for caller:', event.candidate);
+      if (event.candidate) {
+        socket.emit('ice-candidate', {
+          candidate: event.candidate,
           to: targetId,
-          offer,
-          type,
         });
-
-        console.log('🎯 Call-user event emitted successfully');
-
-        // Add a timeout to check if call is answered
-        setTimeout(() => {
-          const currentState = get();
-          if (currentState.isCalling && !currentState.isInCall) {
-            console.warn('⚠️ Call not answered within 30 seconds, ending call');
-            get().endCall();
-          }
-        }, 30000);
-
+        console.log('ICE candidate sent');
       } else {
-        console.error('❌ Socket not available or not connected');
-        set({ isCalling: false });
+        console.log('ICE candidate gathering complete for caller');
+      }
+    };
+
+    pc.ontrack = (event) => {
+      console.log('🎯 ONTRACK EVENT FIRED FOR CALLER - THIS IS IMPORTANT!');
+      console.log('Event object:', event);
+      console.log('Event streams:', event.streams);
+      console.log('Number of streams:', event.streams?.length);
+
+      if (!event.streams || event.streams.length === 0) {
+        console.error('❌ No streams in ontrack event for caller');
         return;
       }
+
+      const remoteMediaStream = event.streams[0];
+      console.log('📺 Remote media stream for caller:', remoteMediaStream);
+      console.log('🎵 Remote media stream tracks:', remoteMediaStream.getTracks().map(t => ({
+        kind: t.kind,
+        id: t.id,
+        enabled: t.enabled,
+        readyState: t.readyState
+      })));
+
+      // Ensure tracks are enabled
+      remoteMediaStream.getTracks().forEach(track => {
+        if (!track.enabled) {
+          console.log(`⚠️ Enabling ${track.kind} track for caller`);
+          track.enabled = true;
+        }
+      });
+
+      if (remoteMediaStream.getTracks().length > 0) {
+        if (remoteMediaStream.getTracks().length > 0) {
+          // Create a new MediaStream to ensure React detects the change
+          const newStream = new MediaStream(remoteMediaStream.getTracks());
+          console.log('✅ Remote stream set for caller with', newStream.getTracks().length, 'tracks');
+          set({ remoteStream: newStream });
+        }
+        console.log('✅ Remote stream set for caller with', remoteMediaStream.getTracks().length, 'tracks');
+      } else {
+        console.warn('⚠️ Remote stream has no tracks for caller');
+      }
+    };
+
+    // Add local stream tracks
+    console.log('🎥 Adding local tracks to peer connection...');
+    stream.getTracks().forEach(track => {
+      console.log('📤 Adding track to peer connection:', {
+        kind: track.kind,
+        id: track.id,
+        enabled: track.enabled,
+        label: track.label,
+        readyState: track.readyState
+      });
+
+      // Ensure track is enabled before adding
+      if (!track.enabled) {
+        track.enabled = true;
+        console.log(`✅ Enabled ${track.kind} track`);
+      }
+
+      const sender = pc.addTrack(track, stream);
+      console.log('✅ Track added to peer connection, sender:', sender);
+    });
+    console.log('🎥 Finished adding local tracks');
+
+    set({ peerConnection: pc });
+
+    pc.onconnectionstatechange = () => {
+      console.log('Connection state for caller:', pc.connectionState);
+      if (pc.connectionState === 'connected') {
+        console.log('✅ WebRTC connection established for caller');
+      } else if (pc.connectionState === 'failed') {
+        console.error('❌ WebRTC connection failed for caller');
+      }
+    };
+
+    // Create offer
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    console.log('Emitting call-user', { to: targetId, offer, type });
+
+    if (socket && socket.connected) {
+      socket.emit('call-user', {
+        to: targetId,
+        offer,
+        type,
+      });
+
+      console.log('🎯 Call-user event emitted successfully');
+
+      // Add a timeout to check if call is answered
+      setTimeout(() => {
+        const currentState = get();
+        if (currentState.isCalling && !currentState.isInCall) {
+          console.warn('⚠️ Call not answered within 30 seconds, ending call');
+          get().endCall();
+        }
+      }, 30000);
+
+    } else {
+      console.error('❌ Socket not available or not connected');
+      set({ isCalling: false });
+      return;
+    }
   },
 
   answerCall: async () => {
@@ -639,8 +644,10 @@ export const useCallStore = create((set, get) => ({
       });
 
       if (remoteMediaStream.getTracks().length > 0) {
-        set({ remoteStream: remoteMediaStream });
-        console.log('✅ Remote stream set for receiver with', remoteMediaStream.getTracks().length, 'tracks');
+        // Create a new MediaStream to ensure React detects the change
+        const newStream = new MediaStream(remoteMediaStream.getTracks());
+        console.log('✅ Remote stream set for receiver with', newStream.getTracks().length, 'tracks');
+        set({ remoteStream: newStream });
       } else {
         console.warn('⚠️ Remote stream has no tracks for receiver');
       }
