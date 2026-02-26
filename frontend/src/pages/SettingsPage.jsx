@@ -26,8 +26,8 @@ const SettingsPage = () => {
                   onChange={(e) => setTheme(e.target.value)}
                   className="bg-bg-tertiary border border-border rounded-lg px-3 py-2 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="light">Light</option>
-                  <option value="luxury">Luxury (Dark Glassy)</option>
+                  <option value="light">Professional Light</option>
+                  <option value="luxury">Night Mode (Optional)</option>
                 </select>
               </div>
             </div>

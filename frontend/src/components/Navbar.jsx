@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
-import { LogOut, MessageCircleCode, Settings, User } from "lucide-react";
+import { LogOut, MessageCircleCode, Settings, User, LayoutDashboard, Briefcase, FileText } from "lucide-react";
 
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
@@ -71,6 +71,47 @@ const Navbar = () => {
               <Settings className="w-5 h-5 relative z-10 group-hover:rotate-12 transition-transform duration-500" />
               <span className="hidden sm:inline font-medium relative z-10">Settings</span>
             </Link>
+
+            {authUser && authUser.role === 'admin' && (
+              <>
+                <Link
+                  to={"/dashboard"}
+                  className="hover:bg-bg-tertiary rounded-full p-3 transition-all duration-500 flex items-center gap-2 text-text-primary hover:scale-110 group relative overflow-hidden"
+                  style={{ transform: 'perspective(1000px) rotateX(0deg)', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateX(-8deg) translateY(-3px)'; e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(0px)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'; }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <LayoutDashboard className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-500" />
+                  <span className="hidden sm:inline font-medium relative z-10">Dashboard</span>
+                </Link>
+                <Link
+                  to={"/cases"}
+                  className="hover:bg-bg-tertiary rounded-full p-3 transition-all duration-500 flex items-center gap-2 text-text-primary hover:scale-110 group relative overflow-hidden"
+                  style={{ transform: 'perspective(1000px) rotateX(0deg)', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateX(-8deg) translateY(-3px)'; e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(0px)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'; }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <Briefcase className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-500" />
+                  <span className="hidden sm:inline font-medium relative z-10">Cases</span>
+                </Link>
+              </>
+            )}
+
+            {authUser && authUser.role === 'client' && (
+              <Link
+                to={"/client-portal"}
+                className="hover:bg-bg-tertiary rounded-full p-3 transition-all duration-500 flex items-center gap-2 text-text-primary hover:scale-110 group relative overflow-hidden"
+                style={{ transform: 'perspective(1000px) rotateX(0deg)', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateX(-8deg) translateY(-3px)'; e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(0px)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'; }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <FileText className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-500" />
+                <span className="hidden sm:inline font-medium relative z-10">My Portal</span>
+              </Link>
+            )}
 
             {authUser && (
               <>

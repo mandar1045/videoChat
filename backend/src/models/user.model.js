@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: function() {
+      required: function () {
         return !this.googleId; // Password required only if not a Google user
       },
       minlength: 6,
@@ -25,6 +25,11 @@ const userSchema = new mongoose.Schema(
     lastSeen: {
       type: Date,
       default: Date.now,
+    },
+    role: {
+      type: String,
+      enum: ["admin", "client"],
+      default: "client",
     },
     googleId: {
       type: String,

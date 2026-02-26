@@ -116,7 +116,7 @@ const ChatHeader = () => {
       {/* Action buttons */}
       <div className="flex items-center gap-2">
         {/* Call buttons for users */}
-        {selectedUser && (
+        {selectedUser && authUser?.role === 'admin' && (
           <>
             <button
               onClick={handleAudioCall}
@@ -136,7 +136,7 @@ const ChatHeader = () => {
         )}
 
         {/* Call buttons for groups */}
-        {selectedGroup && (
+        {selectedGroup && authUser?.role === 'admin' && (
           <>
             <button
               onClick={handleGroupAudioCall}
