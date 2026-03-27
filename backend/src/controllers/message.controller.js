@@ -11,10 +11,20 @@ export const getUsersForSidebar = async (req, res) => {
     let users;
 
     if (loggedInUser.role === "admin") {
-      // Lawyer: show only clients assigned to this lawyer
+      // Lawyer: show all clients so new client accounts are immediately visible.
       users = await User.find({
-        assignedLawyer: loggedInUser._id,
-      }).select("fullName email profilePic lastSeen role");
+        role: "client",
+        _id: { $ne: loggedInUser._id },
+      }).select("fullName email profilePic lastSeen role assignedLawyer");
+
+      users = users.sort((a, b) => {
+        const aAssignedToMe = a.assignedLawyer?.toString() === loggedInUser._id.toString();
+        const bAssignedToMe = b.assignedLawyer?.toString() === loggedInUser._id.toString();
+
+        if (aAssignedToMe !== bAssignedToMe) return aAssignedToMe ? -1 : 1;
+
+        return new Date(b.lastSeen || 0) - new Date(a.lastSeen || 0);
+      });
     } else {
       // Client: show all lawyers so active counsel are always visible.
       users = await User.find({
