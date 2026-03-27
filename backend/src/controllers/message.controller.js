@@ -11,17 +11,19 @@ export const getUsersForSidebar = async (req, res) => {
     let users;
 
     if (loggedInUser.role === "admin") {
-      // Lawyer: show all clients so new client accounts are immediately visible.
+      // Lawyer: show every other user on the platform.
       users = await User.find({
-        role: "client",
         _id: { $ne: loggedInUser._id },
       }).select("fullName email profilePic lastSeen role assignedLawyer");
 
       users = users.sort((a, b) => {
         const aAssignedToMe = a.assignedLawyer?.toString() === loggedInUser._id.toString();
         const bAssignedToMe = b.assignedLawyer?.toString() === loggedInUser._id.toString();
+        const aIsClient = a.role === "client";
+        const bIsClient = b.role === "client";
 
         if (aAssignedToMe !== bAssignedToMe) return aAssignedToMe ? -1 : 1;
+        if (aIsClient !== bIsClient) return aIsClient ? -1 : 1;
 
         return new Date(b.lastSeen || 0) - new Date(a.lastSeen || 0);
       });
