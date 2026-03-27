@@ -5,6 +5,33 @@ import Group from "../models/group.model.js";
 import cloudinary from "../lib/cloudinary.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
 
+const DEMO_EMAILS = new Set([
+  "admin@lawfirm.com",
+  "client@lawfirm.com",
+  "jane.doe@lexconnect.com",
+  "michael.smith@lexconnect.com",
+  "sarah.vance@lexconnect.com",
+  "robert.chen@lexconnect.com",
+  "emma.thompson@example.com",
+  "olivia.miller@example.com",
+  "sophia.davis@example.com",
+  "ava.wilson@example.com",
+  "isabella.brown@example.com",
+  "mia.johnson@example.com",
+  "charlotte.williams@example.com",
+  "amelia.garcia@example.com",
+  "james.anderson@example.com",
+  "william.clark@example.com",
+  "benjamin.taylor@example.com",
+  "lucas.moore@example.com",
+  "henry.jackson@example.com",
+  "alexander.martin@example.com",
+  "daniel.rodriguez@example.com",
+]);
+
+const filterOutDemoUsers = (users) =>
+  users.filter((user) => !DEMO_EMAILS.has((user.email || "").toLowerCase()));
+
 export const getUsersForSidebar = async (req, res) => {
   try {
     const loggedInUser = req.user;
@@ -46,7 +73,7 @@ export const getUsersForSidebar = async (req, res) => {
       }
     }
 
-    res.status(200).json(users);
+    res.status(200).json(filterOutDemoUsers(users));
   } catch (error) {
     console.error("Error in getUsersForSidebar: ", error.message);
     res.status(500).json({ error: "Internal server error" });
