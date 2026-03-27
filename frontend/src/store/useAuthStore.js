@@ -72,10 +72,10 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  googleSignIn: async (credential) => {
+  googleSignIn: async (credential, role = "client") => {
     set({ isLoggingIn: true });
     try {
-      const res = await axiosInstance.post("/auth/google-signin", { credential });
+      const res = await axiosInstance.post("/auth/google-signin", { credential, role });
       set({ authUser: res.data });
       toast.success("Signed in with Google successfully");
       get().connectSocket();

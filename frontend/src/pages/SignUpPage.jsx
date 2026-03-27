@@ -1,16 +1,39 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Eye, EyeOff, Loader2, Lock, Mail, User } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail, Scale, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import AuthImagePattern from "../components/AuthImagePattern";
 import toast from "react-hot-toast";
 
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ fullName: "", email: "", password: "" });
+  const [formData, setFormData] = useState({ fullName: "", email: "", password: "", role: "client" });
   const { signup, isSigningUp, googleSignIn } = useAuthStore();
+  const roleOptions = [
+    {
+      value: "client",
+      label: "Client",
+      description: "I need to consult with a lawyer and access my case portal.",
+      icon: <User className="h-4 w-4" />,
+    },
+    {
+      value: "admin",
+      label: "Lawyer",
+      description: "I am joining as counsel to manage clients and legal matters.",
+      icon: <Scale className="h-4 w-4" />,
+    },
+  ];
+
+  const validateRoleSelection = () => {
+    if (!["client", "admin"].includes(formData.role)) {
+      return toast.error("Please choose how you're joining");
+    }
+
+    return true;
+  };
 
   const validateForm = () => {
+    if (validateRoleSelection() !== true) return false;
     if (!formData.fullName.trim()) return toast.error("Full name is required");
     if (!formData.email.trim()) return toast.error("Email is required");
     if (!/\S+@\S+\.\S+/.test(formData.email)) return toast.error("Invalid email format");
@@ -28,10 +51,10 @@ const SignUpPage = () => {
     if (window.google) {
       window.google.accounts.id.initialize({
         client_id: "491088596417-t8ma7ocemdh03jhdik8hhmej8sg9v6ck.apps.googleusercontent.com",
-        callback: (response) => googleSignIn(response.credential),
+        callback: (response) => googleSignIn(response.credential, formData.role),
       });
     }
-  }, [googleSignIn]);
+  }, [formData.role, googleSignIn]);
 
   const inputStyle = { background: '#f4f6f9', border: '1.5px solid #d1dae6', color: '#0c1f3d', outline: 'none' };
 
@@ -57,6 +80,46 @@ const SignUpPage = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium mb-1.5" style={{ color: '#0c1f3d' }}>Joining As</label>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {roleOptions.map((option) => {
+                  const isSelected = formData.role === option.value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, role: option.value })}
+                      className="text-left rounded-xl p-4 border transition-all"
+                      style={{
+                        background: isSelected ? 'rgba(12,31,61,0.04)' : '#f4f6f9',
+                        borderColor: isSelected ? '#1a3a5c' : '#d1dae6',
+                        boxShadow: isSelected ? '0 6px 18px rgba(12,31,61,0.08)' : 'none',
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div
+                          className="w-9 h-9 rounded-lg flex items-center justify-center"
+                          style={{
+                            background: isSelected ? 'linear-gradient(135deg, #0c1f3d, #1a3a5c)' : 'white',
+                            color: isSelected ? 'white' : '#1a3a5c',
+                            border: `1px solid ${isSelected ? 'rgba(201,168,76,0.3)' : '#d1dae6'}`,
+                          }}
+                        >
+                          {option.icon}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold" style={{ color: '#0c1f3d' }}>{option.label}</p>
+                          <p className="text-xs leading-relaxed" style={{ color: '#6b7a94' }}>{option.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium mb-1.5" style={{ color: '#0c1f3d' }}>Full Name</label>
               <div className="relative">
@@ -138,7 +201,11 @@ const SignUpPage = () => {
 
             <button
               type="button"
-              onClick={() => window.google?.accounts?.id?.prompt()}
+              onClick={() => {
+                if (validateRoleSelection() === true) {
+                  window.google?.accounts?.id?.prompt();
+                }
+              }}
               className="w-full flex justify-center items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-all hover:bg-gray-50"
               style={{ border: '1.5px solid #d1dae6', color: '#0c1f3d', background: 'white' }}
             >
@@ -150,6 +217,9 @@ const SignUpPage = () => {
               </svg>
               Sign up with Google
             </button>
+            <p className="text-xs text-center -mt-2" style={{ color: '#6b7a94' }}>
+              Google signup will create your account as a {formData.role === "admin" ? "lawyer" : "client"}.
+            </p>
           </form>
 
           <div className="text-center">

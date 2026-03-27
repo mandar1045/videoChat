@@ -5,10 +5,14 @@ import cloudinary from "../lib/cloudinary.js";
 import passport from "passport";
 
 export const signup = async (req, res) => {
-  const { fullName, email, password } = req.body;
+  const { fullName, email, password, role = "client" } = req.body;
   try {
     if (!fullName || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (!["admin", "client"].includes(role)) {
+      return res.status(400).json({ message: "Invalid account type selected" });
     }
 
     if (password.length < 6) {
@@ -26,6 +30,7 @@ export const signup = async (req, res) => {
       fullName,
       email,
       password: hashedPassword,
+      role,
     });
 
     if (newUser) {
@@ -39,6 +44,7 @@ export const signup = async (req, res) => {
         fullName: newUser.fullName,
         email: newUser.email,
         profilePic: newUser.profilePic,
+        role: newUser.role,
       });
     } else {
       res.status(400).json({ message: "Invalid user data" });
@@ -73,6 +79,7 @@ export const login = async (req, res) => {
       fullName: user.fullName,
       email: user.email,
       profilePic: user.profilePic,
+      role: user.role,
     });
   } catch (error) {
     console.log("Error in login controller", error.message);
@@ -192,12 +199,16 @@ export const googleAuthCallback = async (req, res) => {
 export const googleSignIn = async (req, res) => {
   console.log("Google sign-in endpoint called");
   try {
-    const { credential } = req.body;
+    const { credential, role = "client" } = req.body;
     console.log("Credential received:", credential ? "Yes" : "No");
 
     if (!credential) {
       console.log("No credential provided");
       return res.status(400).json({ message: "Credential is required" });
+    }
+
+    if (!["admin", "client"].includes(role)) {
+      return res.status(400).json({ message: "Invalid account type selected" });
     }
 
     // Verify the Google credential (you might want to use Google's token verification)
@@ -245,6 +256,7 @@ export const googleSignIn = async (req, res) => {
           fullName: displayName,
           email,
           profilePic: profilePic || "",
+          role,
         });
         await user.save();
       }
@@ -266,6 +278,7 @@ export const googleSignIn = async (req, res) => {
       fullName: user.fullName,
       email: user.email,
       profilePic: user.profilePic,
+      role: user.role,
     });
   } catch (error) {
     console.log("Error in Google sign-in:", error);
