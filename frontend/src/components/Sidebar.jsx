@@ -9,7 +9,7 @@ import { formatLastSeen } from "../lib/utils";
 const Sidebar = () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading, getGroups, groups, selectedGroup, setSelectedGroup, isGroupsLoading, subscribeToUserUpdates, unsubscribeFromUserUpdates } = useChatStore();
 
-  const { onlineUsers } = useAuthStore();
+  const { authUser, onlineUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,11 +24,24 @@ const Sidebar = () => {
     };
   }, [getUsers, getGroups, subscribeToUserUpdates, unsubscribeFromUserUpdates]);
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch = user.fullName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesOnline = showOnlineOnly ? onlineUsers.includes(user._id) : true;
-    return matchesSearch && matchesOnline;
-  });
+  const filteredUsers = users
+    .filter((user) => {
+      const matchesSearch = user.fullName.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesOnline = showOnlineOnly ? onlineUsers.includes(user._id) : true;
+      return matchesSearch && matchesOnline;
+    })
+    .sort((a, b) => {
+      const aOnline = onlineUsers.includes(a._id);
+      const bOnline = onlineUsers.includes(b._id);
+
+      if (aOnline !== bOnline) return aOnline ? -1 : 1;
+
+      if (authUser?.role === "client") {
+        return a.fullName.localeCompare(b.fullName);
+      }
+
+      return new Date(b.lastSeen || 0) - new Date(a.lastSeen || 0);
+    });
 
   const filteredGroups = groups.filter((group) =>
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -171,7 +184,9 @@ const Sidebar = () => {
     ))}
 
     {filteredUsers.length === 0 && (
-      <div className="text-center text-text-muted py-8">No chats</div>
+      <div className="text-center text-text-muted py-8">
+        {authUser?.role === "client" ? "No lawyers available right now" : "No chats"}
+      </div>
     )}
 
     {/* Groups Section */}

@@ -16,17 +16,21 @@ export const getUsersForSidebar = async (req, res) => {
         assignedLawyer: loggedInUser._id,
       }).select("fullName email profilePic lastSeen role");
     } else {
-      // Client: show only their assigned lawyer
+      // Client: show all lawyers so active counsel are always visible.
+      users = await User.find({
+        role: "admin",
+        _id: { $ne: loggedInUser._id },
+      }).select("fullName email profilePic lastSeen role");
+
       if (loggedInUser.assignedLawyer) {
-        users = await User.find({
-          _id: loggedInUser.assignedLawyer,
-        }).select("fullName email profilePic lastSeen role");
+        const assignedLawyerId = loggedInUser.assignedLawyer.toString();
+        users = users.sort((a, b) => {
+          if (a._id.toString() === assignedLawyerId) return -1;
+          if (b._id.toString() === assignedLawyerId) return 1;
+          return new Date(b.lastSeen || 0) - new Date(a.lastSeen || 0);
+        });
       } else {
-        // Fallback for unassigned clients: show all lawyers
-        users = await User.find({
-          role: "admin",
-          _id: { $ne: loggedInUser._id },
-        }).select("fullName email profilePic lastSeen role");
+        users = users.sort((a, b) => new Date(b.lastSeen || 0) - new Date(a.lastSeen || 0));
       }
     }
 
