@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Camera, Mail, User, Shield, BadgeCheck, Calendar } from "lucide-react";
+import { Camera, Mail, User, Shield, BadgeCheck, Calendar, Scale } from "lucide-react";
 
 const NAVY = "#0c1f3d";
 const GOLD  = "#c9a84c";
@@ -23,6 +23,11 @@ const Field = ({ icon: Icon, label, value }) => (
 const ProfilePage = () => {
   const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
   const [selectedImg, setSelectedImg] = useState(null);
+  const [selectedRole, setSelectedRole] = useState(authUser?.role || "client");
+
+  useEffect(() => {
+    setSelectedRole(authUser?.role || "client");
+  }, [authUser?.role]);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -38,6 +43,12 @@ const ProfilePage = () => {
 
   const isLawyer  = authUser?.role === "admin";
   const roleLabel = isLawyer ? "Attorney" : "Client";
+  const hasRoleChanged = selectedRole !== authUser?.role;
+
+  const handleRoleUpdate = async () => {
+    if (!hasRoleChanged) return;
+    await updateProfile({ role: selectedRole });
+  };
 
   return (
     <div className="min-h-screen pt-20 pb-10" style={{ background: '#f4f6f9' }}>
@@ -154,6 +165,61 @@ const ProfilePage = () => {
               </span>
             </div>
           </div>
+        </div>
+
+        <div className="rounded-2xl p-6 mb-5 bg-white shadow-sm space-y-4" style={{ border: '1px solid #d1dae6' }}>
+          <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: NAVY }}>
+            <Scale size={15} style={{ color: GOLD }} />
+            Account Type
+          </h2>
+
+          <p className="text-sm" style={{ color: '#6b7a94' }}>
+            Switch this account between client and lawyer. Lawyers can see every user, while clients see every lawyer.
+          </p>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            {[
+              {
+                value: "client",
+                label: "Client",
+                description: "See every lawyer on the platform.",
+              },
+              {
+                value: "admin",
+                label: "Lawyer",
+                description: "See every user on the platform.",
+              },
+            ].map((option) => {
+              const isSelected = selectedRole === option.value;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setSelectedRole(option.value)}
+                  className="text-left rounded-xl p-4 border transition-all"
+                  style={{
+                    background: isSelected ? 'rgba(12,31,61,0.04)' : '#f4f6f9',
+                    borderColor: isSelected ? '#1a3a5c' : '#d1dae6',
+                    boxShadow: isSelected ? '0 6px 18px rgba(12,31,61,0.08)' : 'none',
+                  }}
+                >
+                  <p className="text-sm font-semibold" style={{ color: NAVY }}>{option.label}</p>
+                  <p className="text-xs mt-1 leading-relaxed" style={{ color: '#6b7a94' }}>{option.description}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleRoleUpdate}
+            disabled={!hasRoleChanged || isUpdatingProfile}
+            className="px-4 py-2.5 rounded-lg font-semibold text-sm text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: 'linear-gradient(135deg, #0c1f3d, #1a3a5c)', border: '1px solid rgba(201,168,76,0.3)' }}
+          >
+            {isUpdatingProfile ? "Saving..." : "Update Account Type"}
+          </button>
         </div>
 
         {/* ── Security card ── */}

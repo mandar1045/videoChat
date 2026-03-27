@@ -99,19 +99,31 @@ export const logout = (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { profilePic } = req.body;
+    const { profilePic, role } = req.body;
     const userId = req.user._id;
+    const updates = {};
 
-    if (!profilePic) {
-      return res.status(400).json({ message: "Profile pic is required" });
+    if (!profilePic && !role) {
+      return res.status(400).json({ message: "No profile changes provided" });
     }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic);
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { profilePic: uploadResponse.secure_url },
-      { new: true }
-    );
+    if (profilePic) {
+      const uploadResponse = await cloudinary.uploader.upload(profilePic);
+      updates.profilePic = uploadResponse.secure_url;
+    }
+
+    if (role) {
+      if (!["admin", "client"].includes(role)) {
+        return res.status(400).json({ message: "Invalid account role selected" });
+      }
+
+      updates.role = role;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
 
     res.status(200).json(updatedUser);
   } catch (error) {
@@ -199,7 +211,7 @@ export const googleAuthCallback = async (req, res) => {
 export const googleSignIn = async (req, res) => {
   console.log("Google sign-in endpoint called");
   try {
-    const { credential, role = "client" } = req.body;
+    const { credential, role } = req.body;
     console.log("Credential received:", credential ? "Yes" : "No");
 
     if (!credential) {
@@ -207,7 +219,7 @@ export const googleSignIn = async (req, res) => {
       return res.status(400).json({ message: "Credential is required" });
     }
 
-    if (!["admin", "client"].includes(role)) {
+    if (role && !["admin", "client"].includes(role)) {
       return res.status(400).json({ message: "Invalid account type selected" });
     }
 
@@ -246,6 +258,9 @@ export const googleSignIn = async (req, res) => {
         // Link Google account to existing user
         existingUser.googleId = googleId;
         existingUser.profilePic = profilePic || existingUser.profilePic;
+        if (role) {
+          existingUser.role = role;
+        }
         await existingUser.save();
         user = existingUser;
       } else {
@@ -256,12 +271,15 @@ export const googleSignIn = async (req, res) => {
           fullName: displayName,
           email,
           profilePic: profilePic || "",
-          role,
+          role: role || "client",
         });
         await user.save();
       }
     } else {
       console.log("Found existing Google user");
+      if (role && user.role !== role) {
+        user.role = role;
+      }
     }
 
     // Update last seen
