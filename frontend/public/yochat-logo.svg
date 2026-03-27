@@ -1,18 +1,29 @@
-<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Outer chat bubble shape -->
-  <path d="M18 2C9.16 2 2 8.51 2 16.5C2 20.64 3.79 24.37 6.68 26.93L4.5 32.5L10.5 30.32C12.37 31.21 14.63 31.5 16.5 31.5C25.34 31.5 32.5 25.34 32.5 16.5C32.5 7.66 25.34 2 18 2Z" fill="url(#gradient)" stroke="#4F46E5" stroke-width="2"/>
-  
-  <!-- Inner speech lines -->
-  <path d="M12 14H24M12 18H20M12 22H16" stroke="white" stroke-width="2" stroke-linecap="round"/>
-  
-  <!-- Stylized "Y" overlay -->
-  <text x="18" y="20" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Y</text>
-  
-  <!-- Gradient definition -->
+<svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
-    </linearGradient>
+    <radialGradient id="bgGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#1e3a5c"/>
+      <stop offset="100%" stop-color="#0c1f3d"/>
+    </radialGradient>
   </defs>
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#bgGrad)"/>
+  <!-- Central pillar -->
+  <rect x="47.5" y="22" width="5" height="49" fill="#c9a84c" rx="2.5"/>
+  <!-- Base platform -->
+  <rect x="34" y="71" width="32" height="5" fill="#c9a84c" rx="2.5"/>
+  <rect x="38" y="66" width="24" height="5" fill="#c9a84c" rx="2"/>
+  <!-- Cross beam -->
+  <rect x="16" y="27" width="68" height="5" fill="#c9a84c" rx="2.5"/>
+  <!-- Left pan strings -->
+  <line x1="24" y1="32" x2="16" y2="51" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="24" y1="32" x2="32" y2="51" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Right pan strings -->
+  <line x1="76" y1="32" x2="68" y2="51" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="76" y1="32" x2="84" y2="51" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Left scale pan bowl -->
+  <path d="M12 52 Q24 63 36 52" stroke="#c9a84c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Right scale pan bowl -->
+  <path d="M64 52 Q76 63 88 52" stroke="#c9a84c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Top pivot ornament -->
+  <circle cx="50" cy="22" r="4" fill="#c9a84c"/>
 </svg>

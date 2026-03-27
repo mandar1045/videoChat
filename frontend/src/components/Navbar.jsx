@@ -1,167 +1,75 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
-import { LogOut, MessageCircleCode, Settings, User, LayoutDashboard, Briefcase, FileText } from "lucide-react";
+import { LogOut, Settings, User, LayoutDashboard, Briefcase, FileText, MessageSquare } from "lucide-react";
 
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
 
   return (
-    <header
-      className="fixed w-full top-0 z-40 bg-gradient-to-r from-bg-secondary via-bg-tertiary to-bg-secondary backdrop-blur-2xl border-b border-border shadow-2xl"
-      style={{
-        boxShadow: '0 25px 50px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-        transform: 'perspective(1200px) rotateX(2deg)',
-        transformOrigin: 'center top'
-      }}
-    >
-      <div className="container mx-auto px-6 h-16 relative">
-        {/* Floating background elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-2 left-1/4 w-2 h-2 bg-blue-400/30 rounded-full animate-bounce" style={{ animationDelay: '0s', animationDuration: '3s' }}></div>
-          <div className="absolute top-4 right-1/3 w-1.5 h-1.5 bg-purple-400/30 rounded-full animate-bounce" style={{ animationDelay: '1s', animationDuration: '4s' }}></div>
-          <div className="absolute bottom-2 left-1/2 w-1 h-1 bg-pink-400/30 rounded-full animate-bounce" style={{ animationDelay: '2s', animationDuration: '5s' }}></div>
-        </div>
+    <header className="fixed w-full top-0 z-40 bg-[#0c1f3d] border-b border-[#c9a84c]/20 shadow-lg">
+      <div className="container mx-auto px-6 h-16">
+        <div className="flex items-center justify-between h-full">
 
-        <div className="flex items-center justify-between h-full relative z-10">
-          <div className="flex items-center gap-8">
-            <Link
-              to="/"
-              className="flex items-center gap-3 hover:scale-110 transition-all duration-500 group"
-              style={{
-                transform: 'perspective(1000px) rotateX(0deg)',
-                transformOrigin: 'center center'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'perspective(1000px) rotateX(-10deg) translateY(-5px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(0px)';
-              }}
-            >
-              <div className="relative">
-                <img
-                  src="/yochat-logo.svg"
-                  alt="Yochat Logo"
-                  className="w-10 h-10 drop-shadow-2xl group-hover:drop-shadow-[0_0_20px_rgba(102,126,234,0.6)] transition-all duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-md group-hover:blur-lg transition-all duration-500"></div>
-              </div>
-              <h1 className="text-xl font-bold text-text-primary drop-shadow-lg group-hover:text-primary transition-colors duration-500">Yochat</h1>
-            </Link>
-          </div>
+          {/* Brand */}
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="relative w-9 h-9 flex items-center justify-center rounded-lg bg-[#162d4a] border border-[#c9a84c]/30 shadow-md group-hover:border-[#c9a84c]/70 transition-all duration-300">
+              <img
+                src="/yochat-logo.svg"
+                alt="LexConnect Logo"
+                className="w-7 h-7"
+              />
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-lg font-bold text-white tracking-wide" style={{ fontFamily: "'Playfair Display', serif" }}>
+                Lex<span className="text-[#c9a84c]">Connect</span>
+              </span>
+              <span className="text-[10px] text-[#94a3b8] uppercase tracking-widest hidden sm:block">Secure Legal Consultations</span>
+            </div>
+          </Link>
 
-          <div className="flex items-center gap-3">
-            <Link
-              to={"/settings"}
-              className="hover:bg-bg-tertiary rounded-full p-3 transition-all duration-500 flex items-center gap-2 text-text-primary hover:scale-110 group relative overflow-hidden"
-              style={{
-                transform: 'perspective(1000px) rotateX(0deg)',
-                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'perspective(1000px) rotateX(-8deg) translateY(-3px)';
-                e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
-              }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <Settings className="w-5 h-5 relative z-10 group-hover:rotate-12 transition-transform duration-500" />
-              <span className="hidden sm:inline font-medium relative z-10">Settings</span>
-            </Link>
+          {/* Navigation */}
+          <nav className="flex items-center gap-1">
+            <NavItem to="/settings" icon={<Settings className="w-4 h-4" />} label="Settings" />
 
-            {authUser && authUser.role === 'admin' && (
+            {authUser?.role === 'admin' && (
               <>
-                <Link
-                  to={"/dashboard"}
-                  className="hover:bg-bg-tertiary rounded-full p-3 transition-all duration-500 flex items-center gap-2 text-text-primary hover:scale-110 group relative overflow-hidden"
-                  style={{ transform: 'perspective(1000px) rotateX(0deg)', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateX(-8deg) translateY(-3px)'; e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(0px)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'; }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <LayoutDashboard className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-500" />
-                  <span className="hidden sm:inline font-medium relative z-10">Dashboard</span>
-                </Link>
-                <Link
-                  to={"/cases"}
-                  className="hover:bg-bg-tertiary rounded-full p-3 transition-all duration-500 flex items-center gap-2 text-text-primary hover:scale-110 group relative overflow-hidden"
-                  style={{ transform: 'perspective(1000px) rotateX(0deg)', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateX(-8deg) translateY(-3px)'; e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(0px)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'; }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <Briefcase className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-500" />
-                  <span className="hidden sm:inline font-medium relative z-10">Cases</span>
-                </Link>
+                <NavItem to="/dashboard" icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
+                <NavItem to="/cases" icon={<Briefcase className="w-4 h-4" />} label="Cases" />
               </>
             )}
 
-            {authUser && authUser.role === 'client' && (
-              <Link
-                to={"/client-portal"}
-                className="hover:bg-bg-tertiary rounded-full p-3 transition-all duration-500 flex items-center gap-2 text-text-primary hover:scale-110 group relative overflow-hidden"
-                style={{ transform: 'perspective(1000px) rotateX(0deg)', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)' }}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateX(-8deg) translateY(-3px)'; e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(0px)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'; }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <FileText className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-500" />
-                <span className="hidden sm:inline font-medium relative z-10">My Portal</span>
-              </Link>
+            {authUser?.role === 'client' && (
+              <NavItem to="/client-portal" icon={<FileText className="w-4 h-4" />} label="My Portal" />
             )}
 
             {authUser && (
               <>
-                <Link
-                  to={"/profile"}
-                  className="hover:bg-bg-tertiary rounded-full p-3 transition-all duration-500 flex items-center gap-2 text-text-primary hover:scale-110 group relative overflow-hidden"
-                  style={{
-                    transform: 'perspective(1000px) rotateX(0deg)',
-                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'perspective(1000px) rotateX(-8deg) translateY(-3px)';
-                    e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(0px)';
-                    e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
-                  }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <User className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-500" />
-                  <span className="hidden sm:inline font-medium relative z-10">Profile</span>
-                </Link>
-
+                <NavItem to="/" icon={<MessageSquare className="w-4 h-4" />} label="Messages" />
+                <NavItem to="/profile" icon={<User className="w-4 h-4" />} label="Profile" />
                 <button
-                  className="hover:bg-bg-tertiary rounded-full p-3 transition-all duration-500 flex items-center gap-2 text-text-primary hover:scale-110 group relative overflow-hidden"
                   onClick={logout}
-                  style={{
-                    transform: 'perspective(1000px) rotateX(0deg)',
-                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'perspective(1000px) rotateX(-8deg) translateY(-3px)';
-                    e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(0px)';
-                    e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
-                  }}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[#94a3b8] hover:text-white hover:bg-[#162d4a] transition-all duration-200 border border-transparent hover:border-[#c9a84c]/20"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-400/10 to-pink-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <LogOut className="w-5 h-5 relative z-10 group-hover:rotate-12 transition-transform duration-500" />
-                  <span className="hidden sm:inline font-medium relative z-10">Logout</span>
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Logout</span>
                 </button>
               </>
             )}
-          </div>
+          </nav>
         </div>
       </div>
     </header>
   );
 };
+
+const NavItem = ({ to, icon, label }) => (
+  <Link
+    to={to}
+    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[#94a3b8] hover:text-white hover:bg-[#162d4a] transition-all duration-200 border border-transparent hover:border-[#c9a84c]/20"
+  >
+    {icon}
+    <span className="hidden sm:inline">{label}</span>
+  </Link>
+);
+
 export default Navbar;

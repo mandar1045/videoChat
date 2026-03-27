@@ -1,151 +1,67 @@
-import { MessageCircleCode } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
 
 const NoChatSelected = () => {
-  return (
-    <div className="w-full flex flex-1 flex-col items-center justify-center p-20 chat-bg relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        {/* Floating geometric shapes */}
-        <div className="absolute top-20 left-20 w-16 h-16 border-2 border-blue-400/30 rounded-full animate-bounce" style={{ animationDelay: '0s', animationDuration: '6s' }}></div>
-        <div className="absolute top-40 right-32 w-12 h-12 border-2 border-purple-400/30 rotate-45 animate-bounce" style={{ animationDelay: '2s', animationDuration: '8s' }}></div>
-        <div className="absolute bottom-32 left-32 w-8 h-8 border-2 border-pink-400/30 rounded-full animate-bounce" style={{ animationDelay: '4s', animationDuration: '7s' }}></div>
-        <div className="absolute bottom-20 right-20 w-10 h-10 border-2 border-green-400/30 rotate-45 animate-bounce" style={{ animationDelay: '1s', animationDuration: '9s' }}></div>
+  const { authUser } = useAuthStore();
+  const isLawyer = authUser?.role === 'admin';
 
-        {/* Floating particles */}
-        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-400/40 rounded-full animate-ping" style={{ animationDelay: '0s' }}></div>
-        <div className="absolute top-1/3 right-1/3 w-1.5 h-1.5 bg-purple-400/40 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute bottom-1/3 left-1/3 w-1 h-1 bg-pink-400/40 rounded-full animate-ping" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-1/4 right-1/4 w-2.5 h-2.5 bg-green-400/40 rounded-full animate-ping" style={{ animationDelay: '3s' }}></div>
+  return (
+    <div className="w-full flex flex-1 flex-col items-center justify-center p-12 chat-bg relative overflow-hidden">
+      {/* Subtle background */}
+      <div className="absolute inset-0 pointer-events-none opacity-40">
+        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 25% 50%, rgba(201,168,76,0.04) 0%, transparent 55%), radial-gradient(circle at 75% 20%, rgba(26,58,92,0.06) 0%, transparent 55%)' }}></div>
       </div>
 
-      <div className="max-w-lg text-center space-y-8 relative z-10">
-        {/* Icon Display with 3D effect */}
-        <div className="flex justify-center gap-4 mb-6">
-          <div className="relative group">
-            <div
-              className="w-28 h-28 rounded-3xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-2xl transition-all duration-700 hover:scale-110"
-              style={{
-                transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
-                boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'perspective(1000px) rotateX(-15deg) rotateY(15deg) translateY(-10px) scale(1.1)';
-                e.currentTarget.style.boxShadow = '0 35px 70px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)';
-                e.currentTarget.style.boxShadow = '0 25px 50px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-              }}
-            >
-              <MessageCircleCode className="w-14 h-14 text-white drop-shadow-lg animate-pulse" />
-              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-3xl animate-pulse"></div>
+      <div className="max-w-md text-center space-y-8 relative z-10">
+        {/* Logo icon */}
+        <div className="flex justify-center">
+          <div className="relative">
+            <div className="w-28 h-28 rounded-3xl flex items-center justify-center shadow-xl" style={{ background: 'linear-gradient(135deg, #0c1f3d 0%, #1e3a5c 100%)', border: '1px solid rgba(201,168,76,0.25)' }}>
+              <img src="/yochat-logo.svg" alt="LexConnect" className="w-20 h-20" />
             </div>
-            <div
-              className="absolute -top-3 -right-3 w-10 h-10 bg-gradient-to-br from-green-400 to-blue-400 rounded-full flex items-center justify-center shadow-xl animate-bounce"
-              style={{
-                transform: 'perspective(1000px) rotateX(0deg)',
-                boxShadow: '0 10px 25px rgba(34, 197, 94, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2)'
-              }}
-            >
-              <span className="text-white font-bold text-lg drop-shadow-lg">✨</span>
+            <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-lg animate-bounce" style={{ background: 'linear-gradient(135deg, #c9a84c, #a67c3a)' }}>
+              ⚖
             </div>
-            {/* Additional floating elements */}
-            <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-purple-400/60 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
-            <div className="absolute top-1/2 -right-4 w-4 h-4 bg-blue-400/60 rounded-full animate-ping" style={{ animationDelay: '2s' }}></div>
           </div>
         </div>
 
-        {/* Welcome Text with 3D effect */}
-        <div className="space-y-4">
-          <h2
-            className="text-4xl font-bold text-text-primary drop-shadow-2xl transition-all duration-500 hover:scale-105"
-            style={{
-              transform: 'perspective(1000px) rotateX(0deg)',
-              textShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'perspective(1000px) rotateX(-5deg) translateY(-3px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(0px)';
-            }}
-          >
-            Welcome to <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Yochat</span>
+        {/* Welcome text */}
+        <div className="space-y-3">
+          <h2 className="text-3xl font-bold" style={{ color: '#0c1f3d', fontFamily: "'Playfair Display', serif" }}>
+            Welcome to{" "}
+            <span style={{ color: '#1a3a5c' }}>Lex</span>
+            <span style={{ color: '#c9a84c' }}>Connect</span>
           </h2>
-          <p
-            className="text-text-secondary text-xl leading-relaxed drop-shadow-lg max-w-md mx-auto"
-            style={{
-              transform: 'perspective(1000px) rotateX(0deg)',
-              textShadow: '0 5px 15px rgba(0, 0, 0, 0.3)'
-            }}
-          >
-            Send and receive messages without keeping your phone online.<br />
-            Use Yochat on up to 4 linked devices and 1 phone at the same time.
+          <p className="text-base leading-relaxed max-w-sm mx-auto" style={{ color: '#4b5c7e' }}>
+            {isLawyer
+              ? "Select a client from the sidebar to begin a secure chat or video consultation."
+              : "Select your attorney from the sidebar to start a secure consultation."
+            }
           </p>
         </div>
 
-        {/* Feature highlights with 3D cards */}
-        <div className="flex justify-center gap-6 mt-12">
-          <div
-            className="bg-gradient-to-br from-bg-secondary to-bg-tertiary backdrop-blur-xl rounded-3xl p-6 shadow-2xl transition-all duration-500 hover:scale-105 group relative"
-            style={{
-              transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'perspective(1000px) rotateX(-10deg) rotateY(10deg) translateY(-8px) scale(1.05)';
-              e.currentTarget.style.boxShadow = '0 30px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)';
-              e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-            }}
-          >
-            <div className="text-4xl mb-3 group-hover:animate-bounce">💬</div>
-            <div className="text-text-primary font-bold text-lg group-hover:text-primary transition-colors duration-300">Real-time Chat</div>
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          </div>
-
-          <div
-            className="bg-gradient-to-br from-bg-secondary to-bg-tertiary backdrop-blur-xl rounded-3xl p-6 shadow-2xl transition-all duration-500 hover:scale-105 group relative"
-            style={{
-              transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'perspective(1000px) rotateX(-10deg) rotateY(-10deg) translateY(-8px) scale(1.05)';
-              e.currentTarget.style.boxShadow = '0 30px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)';
-              e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-            }}
-          >
-            <div className="text-4xl mb-3 group-hover:animate-bounce">👥</div>
-            <div className="text-text-primary font-bold text-lg group-hover:text-secondary transition-colors duration-300">Group Chats</div>
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-400/10 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          </div>
-
-          <div
-            className="bg-gradient-to-br from-bg-secondary to-bg-tertiary backdrop-blur-xl rounded-3xl p-6 shadow-2xl transition-all duration-500 hover:scale-105 group relative"
-            style={{
-              transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'perspective(1000px) rotateX(-10deg) rotateY(10deg) translateY(-8px) scale(1.05)';
-              e.currentTarget.style.boxShadow = '0 30px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)';
-              e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-            }}
-          >
-            <div className="text-4xl mb-3 group-hover:animate-bounce">📱</div>
-            <div className="text-text-primary font-bold text-lg group-hover:text-accent transition-colors duration-300">Cross-platform</div>
-            <div className="absolute inset-0 bg-gradient-to-br from-pink-400/10 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          </div>
+        {/* Feature cards */}
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { icon: '💬', label: 'Secure Chat', desc: 'Encrypted messaging' },
+            { icon: '📹', label: 'Video Calls', desc: 'HD consultations' },
+            { icon: '📁', label: 'Case Files', desc: 'Document sharing' },
+          ].map((feat, i) => (
+            <div
+              key={i}
+              className="flex flex-col items-center gap-2 p-4 rounded-2xl transition-all duration-300 hover:-translate-y-1 cursor-default group"
+              style={{ background: 'white', border: '1px solid #d1dae6', boxShadow: '0 2px 8px rgba(12,31,61,0.06)' }}
+            >
+              <span className="text-3xl group-hover:scale-110 transition-transform duration-200">{feat.icon}</span>
+              <span className="text-sm font-semibold" style={{ color: '#0c1f3d' }}>{feat.label}</span>
+              <span className="text-xs" style={{ color: '#6b7a94' }}>{feat.desc}</span>
+            </div>
+          ))}
         </div>
+
+        {/* Trust note */}
+        <p className="text-xs" style={{ color: '#94a3b8' }}>
+          🔒 All communications are protected under attorney-client privilege
+        </p>
       </div>
     </div>
   );

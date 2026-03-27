@@ -31,6 +31,12 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "client"],
       default: "client",
     },
+    // For clients: which lawyer they are assigned to
+    assignedLawyer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     googleId: {
       type: String,
       unique: true,

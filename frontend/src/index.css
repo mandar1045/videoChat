@@ -1,26 +1,28 @@
-/* Import Inter font (modern, clean font) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Import Inter & Playfair Display fonts (professional law firm) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* LexConnect – Dark Navy Default Theme */
 :root {
-  --primary: #60a5fa;
-  --primary-dark: #3b82f6;
-  --primary-light: #93c5fd;
-  --secondary: #a78bfa;
-  --accent: #f472b6;
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
+  --primary: #c9a84c;
+  --primary-dark: #a67c3a;
+  --primary-light: #e2c97a;
+  --secondary: #7ea8c9;
+  --accent: #c9a84c;
+  --bg-primary: #0c1f3d;
+  --bg-secondary: #162d4a;
+  --bg-tertiary: #1e3a5c;
   --text-primary: #f8fafc;
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
-  --border: #334155;
-  --shadow: rgba(0, 0, 0, 0.3);
-  --shadow-lg: rgba(0, 0, 0, 0.4);
+  --border: #243d5e;
+  --shadow: rgba(0, 0, 0, 0.4);
+  --shadow-lg: rgba(0, 0, 0, 0.5);
   --success: #34d399;
-  --success-light: #1f2937;
+  --success-light: #0d2e1f;
   --success-dark: #10b981;
   --gray-400: #9ca3af;
   --gray-500: #6b7280;
@@ -31,20 +33,20 @@
   --whatsapp-text-light: var(--text-secondary);
 }
 
-/* Dark Glassy Black theme colors */
+/* LexConnect – Luxury Black/Gold Theme */
 [data-theme="luxury"] {
-  --primary: rgba(96, 165, 250, 0.8);
-  --primary-dark: rgba(59, 130, 246, 0.8);
-  --primary-light: rgba(147, 197, 253, 0.7);
-  --secondary: rgba(167, 139, 250, 0.8);
-  --accent: rgba(244, 114, 182, 0.8);
-  --bg-primary: #000000;
-  --bg-secondary: rgba(0, 0, 0, 0.85);
-  --bg-tertiary: rgba(20, 20, 20, 0.75);
+  --primary: #c9a84c;
+  --primary-dark: #a67c3a;
+  --primary-light: #e2c97a;
+  --secondary: #8fafc4;
+  --accent: #c9a84c;
+  --bg-primary: #080f1a;
+  --bg-secondary: rgba(12, 31, 61, 0.9);
+  --bg-tertiary: rgba(22, 45, 74, 0.8);
   --text-primary: #ffffff;
   --text-secondary: #e5e5e5;
   --text-muted: #a3a3a3;
-  --border: rgba(255, 255, 255, 0.1);
+  --border: rgba(201, 168, 76, 0.2);
   --shadow: rgba(0, 0, 0, 0.8);
   --shadow-lg: rgba(0, 0, 0, 0.9);
   --success: rgba(52, 211, 153, 0.8);
@@ -59,22 +61,22 @@
   --whatsapp-text-light: var(--text-secondary);
 }
 
-/* Light theme colors - Professional White */
+/* LexConnect – Professional Light Theme (default) */
 [data-theme="light"] {
-  --primary: #2563eb;
-  --primary-dark: #1e3a8a;
-  --primary-light: #60a5fa;
-  --secondary: #475569;
-  --accent: #0f172a;
-  --bg-primary: #ffffff;
-  --bg-secondary: #fdfdfd;
-  --bg-tertiary: #f4f5f7;
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-muted: #9ca3af;
-  --border: #e5e7eb;
-  --shadow: rgba(0, 0, 0, 0.04);
-  --shadow-lg: rgba(0, 0, 0, 0.08);
+  --primary: #1a3a5c;
+  --primary-dark: #0c1f3d;
+  --primary-light: #2d5f8a;
+  --secondary: #c9a84c;
+  --accent: #a67c3a;
+  --bg-primary: #f4f6f9;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eaeff5;
+  --text-primary: #0c1f3d;
+  --text-secondary: #1e3a5c;
+  --text-muted: #6b7a94;
+  --border: #d1dae6;
+  --shadow: rgba(12, 31, 61, 0.06);
+  --shadow-lg: rgba(12, 31, 61, 0.12);
   --success: #10b981;
   --success-light: #ecfdf5;
   --success-dark: #047857;

@@ -7,10 +7,30 @@ import { getReceiverSocketId, io } from "../lib/socket.js";
 
 export const getUsersForSidebar = async (req, res) => {
   try {
-    const loggedInUserId = req.user._id;
-    const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("fullName email profilePic lastSeen");
+    const loggedInUser = req.user;
+    let users;
 
-    res.status(200).json(filteredUsers);
+    if (loggedInUser.role === "admin") {
+      // Lawyer: show only clients assigned to this lawyer
+      users = await User.find({
+        assignedLawyer: loggedInUser._id,
+      }).select("fullName email profilePic lastSeen role");
+    } else {
+      // Client: show only their assigned lawyer
+      if (loggedInUser.assignedLawyer) {
+        users = await User.find({
+          _id: loggedInUser.assignedLawyer,
+        }).select("fullName email profilePic lastSeen role");
+      } else {
+        // Fallback for unassigned clients: show all lawyers
+        users = await User.find({
+          role: "admin",
+          _id: { $ne: loggedInUser._id },
+        }).select("fullName email profilePic lastSeen role");
+      }
+    }
+
+    res.status(200).json(users);
   } catch (error) {
     console.error("Error in getUsersForSidebar: ", error.message);
     res.status(500).json({ error: "Internal server error" });

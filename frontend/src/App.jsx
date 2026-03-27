@@ -3,6 +3,7 @@ import Calls from "./components/Calls";
 import GroupCalls from "./components/GroupCalls";
 
 import HomePage from "./pages/HomePage";
+import LandingPage from "./pages/LandingPage";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -12,7 +13,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ClientPortal from "./pages/ClientPortal";
 import CasesPage from "./pages/CasesPage";
 
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
 import { useCallStore } from "./store/useCallStore";
@@ -22,35 +23,34 @@ import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
 const App = () => {
-  console.log("App component rendering");
-  const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
+  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   const { theme } = useThemeStore();
   const { initDebugFunctions } = useCallStore();
+  const location = useLocation();
 
-  console.log({ onlineUsers });
+  // Landing page has its own header — hide the app Navbar there
+  const isLandingPage = !authUser && location.pathname === "/";
 
   useEffect(() => {
-    console.log("App: Calling checkAuth");
     checkAuth();
-    console.log("App: Initializing debug functions");
     initDebugFunctions();
   }, [checkAuth, initDebugFunctions]);
 
-  console.log({ authUser });
-
   if (isCheckingAuth && !authUser)
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader className="size-10 animate-spin" />
+      <div className="flex items-center justify-center h-screen" style={{ background: '#f4f6f9' }}>
+        <Loader className="size-10 animate-spin" style={{ color: '#1a3a5c' }} />
       </div>
     );
 
   return (
     <div data-theme={theme}>
-      <Navbar />
+      {!isLandingPage && <Navbar />}
 
       <Routes>
-        <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
+        {/* Landing page for guests; chat for authenticated users */}
+        <Route path="/" element={authUser ? <HomePage /> : <LandingPage />} />
+
         <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
         <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
         <Route path="/settings" element={<SettingsPage />} />
@@ -62,7 +62,7 @@ const App = () => {
         <Route path="/cases" element={authUser ? <CasesPage /> : <Navigate to="/login" />} />
       </Routes>
 
-      {/* Global Calls component - shows when there's an active call */}
+      {/* Global Calls — shown when there's an active call */}
       <Calls />
       <GroupCalls />
 

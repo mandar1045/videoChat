@@ -1,9 +1,27 @@
-import { X, Trash2, Camera, Phone, Video, Info } from "lucide-react";
+import { X, Phone, Video, Shield, Trash2, Camera } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import { useCallStore } from "../store/useCallStore";
 import { useRef } from "react";
 import { formatLastSeen } from "../lib/utils";
+
+const NAVY = "#0c1f3d";
+const GOLD  = "#c9a84c";
+
+const HeaderBtn = ({ onClick, title, children, accent, danger }) => (
+  <button
+    onClick={onClick}
+    title={title}
+    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+    style={{
+      background: accent ? `linear-gradient(135deg, ${NAVY}, #1a3a5c)` : danger ? 'rgba(220,38,38,0.07)' : '#f4f6f9',
+      color: accent ? 'white' : danger ? '#dc2626' : '#4b5c7e',
+      border: `1px solid ${accent ? 'rgba(201,168,76,0.18)' : danger ? 'rgba(220,38,38,0.15)' : '#d1dae6'}`,
+    }}
+  >
+    {children}
+  </button>
+);
 
 const ChatHeader = () => {
   const { selectedUser, setSelectedUser, selectedGroup, setSelectedGroup, deleteGroup, updateGroupProfilePic } = useChatStore();
@@ -17,159 +35,129 @@ const ChatHeader = () => {
   };
 
   const handleDeleteGroup = () => {
-
-    if (selectedGroup && authUser && selectedGroup.creator === authUser._id) {
+    if (selectedGroup && authUser && selectedGroup.creator === authUser._id)
       deleteGroup(selectedGroup._id);
-    }
   };
 
   const handleProfilePicChange = (e) => {
     const file = e.target.files[0];
     if (file && selectedGroup && authUser && selectedGroup.creator === authUser._id) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        updateGroupProfilePic(selectedGroup._id, reader.result);
-      };
+      reader.onloadend = () => updateGroupProfilePic(selectedGroup._id, reader.result);
       reader.readAsDataURL(file);
     }
   };
 
-  const handleCameraClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleAudioCall = () => {
-    if (selectedUser) {
-      console.log('Starting audio call to:', selectedUser._id);
-      startCall(selectedUser._id, 'audio');
-    }
-  };
-
-  const handleVideoCall = () => {
-    if (selectedUser) {
-      console.log('Starting video call to:', selectedUser._id);
-      startCall(selectedUser._id, 'video');
-    }
-  };
-
-  const handleGroupVideoCall = () => {
-    if (selectedGroup) {
-      console.log('Starting group video call for:', selectedGroup._id);
-      startCall(selectedGroup._id, 'video');
-    }
-  };
-
-  const handleGroupAudioCall = () => {
-    if (selectedGroup) {
-      console.log('Starting group audio call for:', selectedGroup._id);
-      startCall(selectedGroup._id, 'audio');
-    }
-  };
-
   const chat = selectedUser || selectedGroup;
-
   if (!chat) return null;
 
+  const isOnline  = selectedUser && onlineUsers.includes(selectedUser._id);
+  const roleLabel = selectedUser?.role === 'admin' ? 'Attorney' : selectedUser?.role === 'client' ? 'Client' : null;
+
   return (
-    <div className="chat-header p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-      <div className="flex items-center gap-4">
-        {/* Avatar */}
-        <div className="relative">
+    <div className="flex items-center justify-between px-5 py-3 border-b bg-white"
+      style={{ borderColor: '#d1dae6', minHeight: '64px' }}>
+
+      {/* ── Left: Avatar + Info ── */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-shrink-0">
           {selectedUser ? (
-            <img src={selectedUser.profilePic || "/avatar.png"} alt={selectedUser.fullName} className="w-12 h-12 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600" />
-          ) : selectedGroup.profilePic ? (
-            <img src={selectedGroup.profilePic} alt={selectedGroup.name} className="w-12 h-12 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600" />
+            <img
+              src={selectedUser.profilePic || "/avatar.png"}
+              alt={selectedUser.fullName}
+              className="w-11 h-11 rounded-full object-cover border-2"
+              style={{ borderColor: isOnline ? '#10b981' : '#d1dae6' }}
+            />
+          ) : selectedGroup?.profilePic ? (
+            <img src={selectedGroup.profilePic} alt={selectedGroup.name}
+              className="w-11 h-11 rounded-full object-cover border-2" style={{ borderColor: '#d1dae6' }} />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-lg">
-              {selectedGroup.name.charAt(0).toUpperCase()}
+            <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-lg"
+              style={{ background: `linear-gradient(135deg, ${NAVY}, #1e3a5c)` }}>
+              {selectedGroup?.name?.charAt(0).toUpperCase()}
             </div>
           )}
-          {/* Online indicator for users */}
-          {selectedUser && onlineUsers.includes(selectedUser._id) && (
-            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+
+          {selectedUser && isOnline && (
+            <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white bg-green-400" />
           )}
-          {/* Camera button for group profile pic update (only for creator) */}
+
           {selectedGroup && authUser && selectedGroup.creator === authUser._id && (
-            <button
-              onClick={handleCameraClick}
-              className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-1 hover:bg-blue-600 transition-colors"
-            >
-              <Camera size={12} />
+            <button onClick={() => fileInputRef.current?.click()}
+              className="absolute bottom-0 right-0 w-5 h-5 rounded-full flex items-center justify-center"
+              style={{ background: GOLD }}>
+              <Camera size={10} color="white" />
             </button>
           )}
         </div>
 
-        {/* Chat info */}
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-lg truncate text-gray-900 dark:text-white">
-            {selectedUser ? selectedUser.fullName : selectedGroup.name}
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold text-base leading-tight truncate" style={{ color: NAVY }}>
+              {selectedUser ? selectedUser.fullName : selectedGroup?.name}
+            </h3>
+            {roleLabel && (
+              <span className="flex-shrink-0 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                style={{
+                  background: selectedUser?.role === 'admin' ? 'rgba(12,31,61,0.07)' : 'rgba(201,168,76,0.1)',
+                  color: selectedUser?.role === 'admin' ? NAVY : '#a67c3a',
+                  border: `1px solid ${selectedUser?.role === 'admin' ? 'rgba(12,31,61,0.12)' : 'rgba(201,168,76,0.25)'}`,
+                }}>
+                {roleLabel}
+              </span>
+            )}
+          </div>
+          <p className="text-xs mt-0.5" style={{ color: isOnline ? '#10b981' : '#6b7a94' }}>
             {selectedUser
-              ? (onlineUsers.includes(selectedUser._id) ? "online" : formatLastSeen(selectedUser.lastSeen))
-              : `${selectedGroup.members.length} members`
-            }
+              ? (isOnline ? '● Online now' : formatLastSeen(selectedUser.lastSeen))
+              : `${selectedGroup?.members?.length} members`}
           </p>
         </div>
       </div>
 
-      {/* Action buttons */}
-      <div className="flex items-center gap-2">
-        {/* Call buttons for users */}
-        {selectedUser && authUser?.role === 'admin' && (
-          <>
-            <button
-              onClick={handleAudioCall}
-              className="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              title="Audio Call"
-            >
-              <Phone size={20} />
-            </button>
-            <button
-              onClick={handleVideoCall}
-              className="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              title="Video Call"
-            >
-              <Video size={20} />
-            </button>
-          </>
-        )}
+      {/* ── Right: Actions ── */}
+      <div className="flex items-center gap-1.5">
+        <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg mr-1" style={{ background: '#f4f6f9' }}>
+          <Shield size={11} style={{ color: '#10b981' }} />
+          <span className="text-[10px] font-medium" style={{ color: '#6b7a94' }}>Encrypted</span>
+        </div>
 
-        {/* Call buttons for groups */}
+        {selectedUser && (
+          <HeaderBtn onClick={() => startCall(selectedUser._id, 'audio')} title="Voice Call">
+            <Phone size={16} />
+          </HeaderBtn>
+        )}
         {selectedGroup && authUser?.role === 'admin' && (
-          <>
-            <button
-              onClick={handleGroupAudioCall}
-              className="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              title="Group Audio Call"
-            >
-              <Phone size={20} />
-            </button>
-            <button
-              onClick={handleGroupVideoCall}
-              className="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              title="Group Video Call"
-            >
-              <Video size={20} />
-            </button>
-          </>
+          <HeaderBtn onClick={() => startCall(selectedGroup._id, 'audio')} title="Group Voice Call">
+            <Phone size={16} />
+          </HeaderBtn>
         )}
 
-        {/* Info button */}
-        <button className="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-          <Info size={20} />
-        </button>
+        {selectedUser && (
+          <HeaderBtn onClick={() => startCall(selectedUser._id, 'video')} title="Video Consultation" accent>
+            <Video size={16} />
+          </HeaderBtn>
+        )}
+        {selectedGroup && authUser?.role === 'admin' && (
+          <HeaderBtn onClick={() => startCall(selectedGroup._id, 'video')} title="Group Video Call" accent>
+            <Video size={16} />
+          </HeaderBtn>
+        )}
+
+        {selectedGroup && authUser && selectedGroup.creator === authUser._id && (
+          <HeaderBtn onClick={handleDeleteGroup} title="Delete Group" danger>
+            <Trash2 size={15} />
+          </HeaderBtn>
+        )}
+
+        <HeaderBtn onClick={handleClose} title="Close">
+          <X size={17} />
+        </HeaderBtn>
       </div>
 
-      {/* Hidden file input for profile pic */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleProfilePicChange}
-        accept="image/*"
-        className="hidden"
-      />
+      <input type="file" ref={fileInputRef} onChange={handleProfilePicChange} accept="image/*" className="hidden" />
     </div>
   );
 };
+
 export default ChatHeader;
